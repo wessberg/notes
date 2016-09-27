@@ -2,10 +2,47 @@
 > *[OOSE] chapter 5.*
 
 ### Overview
+
 - **OOA focuses on creating a model of the system**
 	-	That is complete, correct, consistent and verifiable.
 	- By structuring formalizing requirements.
 	- Which leads to revision of the requirements.
+
+
+### Roles in OOA
+
+- **End user**
+	-	Application domain expert. Generates information/requirements.
+
+- **Client**
+	- Define scope/priorities. Often the guy with the money.
+
+- **Analyst**
+	-	Application domain expert modeling the current and future systems.
+
+- **Architect**
+	-	Unifies use cases, object models and dynamic models into one coherent description/model.
+
+- **Document Editor**
+	- Low-level editing and document management.
+
+- **Configuration Manager**
+	-	Maintains revision history and manages changes.
+
+- **Reviewer**
+	-	Validates the RAD for correctness, completeness, consistency and clarity.
+
+### Client sign-off
+
+- The client has to formally accept and approve the analysis model and the RAD.
+
+- Agree on:
+	- functions and features.
+	- priorities.
+	- revision process.
+	- acceptance criteria.
+	- schedule
+	- budget.
 
 
 - **Analysis model consists of:**
@@ -155,3 +192,7 @@ For example:
 - Two UML diagram types for describing dynamic models:
 	-	*Interaction* diagrams describe the dynamic behavior **between objects**.
 	- *State chart* diagrams describe the dynamic behavior of **a single object**.
+
+### Modeling inheritance
+
+![Inheritance example](assets/inheritance.png "Inheritance example")

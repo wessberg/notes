@@ -121,3 +121,30 @@ Point- and range queries on the attribute(s) of the **primary index** are almost
 	-	Doesn't have to take indexes into account when writing queries.
 - Estimating selectivity is done using statistics.
 	-	In MySQL, statistics is gathered by executing statements such as `ANALYZE TABLE <tablename>`
+
+### Other impacts of indexes
+The DBMS may use indexes in other situations than a simple point or range query.
+- Some joins can be executed using a modest number of index lookups.
+	- May be faster than looking at all data.
+- Some queries may be executed by only looking at the information in the index.
+	-	**index only** query execution plan ("covering index").
+	- May need to read much less data.
+
+### Index types
+<u>Common:</u>
+- B-trees (point queries, range queries).
+- Hash tables (only point queries, but somewhat faster).
+- Bitmap indexes (good for "dense" sets.)
+
+<u>More exotic:</u>
+- Full text indexes (substring searches).
+- Spatial indexes (proximity search, 2D range search, ...)
+- ...and thousands more.
+
+This of course varies between various relational database management systems.
+
+## Conclusion
+- Large databases **need** to be equipped with suitable indexes. To be an expert in database design, you:
+	-	Need to understand how indexes might help with a given set of queries.
+	- Need to understand distinction between primary and secondary indexes.
+	- Need to have a detailed understanding of index types.

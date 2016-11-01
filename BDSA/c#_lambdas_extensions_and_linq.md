@@ -116,7 +116,8 @@ It allows for stuff like:
 ```c#
 var result = collection
 	.where(x => x.Value > 2)
-	.OrderBy(x.Name)
+	.OrderBy
+	(x.Name)
 	.TakeFirst(2)
 ```
 

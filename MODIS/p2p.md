@@ -24,6 +24,11 @@ But how do do we do so in a way that scales? If all nodes always needs to know h
 
 All in all that would make the system very inefficient.
 
+### Hybrid P2P overlays
+Hybrid P2P overlays are not unstructured, but they aren't fully structured either. They may have centralized index servers and they may have a hierarchy of peers and so-called *superpeers*.
+
+**Fundamentally, they don't avoid scalability problems**.
+
 ### Key-Based Routing API
 We want an API like for the system routing:
 ```javascript
@@ -49,8 +54,110 @@ For instance, say a peer P1 wants to find resource G. A so-called *resourcegroup
 
 There are various ways to accomplish this. As always, we want to archive at least `O(lg(N))`.
 
+### Solutions in unstructured P2P overlays
+
 #### Solution - Random walk
 One way is simply "walking" the tree/graph at random. P1 would send a message `m=<<SEARCH(G)>>` to one of its neighbors. If the neighbor has G, it responds with it (returns it) to P1. Otherwise, it sends `m` on to some neighbor who hasn't yet seen `m`. If all neighbors have seen `m`, the original message `m` is simply returned to P1.
 
 ** But this is not scalable! **
 Clearly, the worst case complexity of this would be `O(N)`. That would be the case if we had to traverse *all* nodes before finding the node that has the resource.
+
+#### Solution - Flooding
+P1 would a message `m=<<Search(G)>>` to *all* of its neighbors. If any one of them has G, it responds directly to P, otherwise it sends `m` on to *all* of its neighbors unless it has already done it.
+
+**But this is not scalable!**
+Clearly, the worst case complexity of this would be `O(N)`. That would be the case if we had to traverse *all* nodes before finding the node that has the resource. Also, we might likely end up traversing the same nodes more than once.
+
+**This is fundamental to unstructured P2P overlays**
+
+### Solutions in structured P2P overlays
+To accomplish better asymptotic complexity, we can use a global scheme specifying which peer `P` is responsible for which resource `G`.
+
+This works by using Distributed Hash Tables (DHT), mapping a key (GUID) to a value (resource).
+
+Those 128-bit GUIDS are computed using a secure hashing function such as SHA-1. For files, this could be computed to the filename, for instance. For nodes, it could be to the public key with which the node is provided.
+The 128-bit size makes it extremely unlikely that clashes occur between the generated GUIDs.
+
+Hashing should be **consistent**. Key lookups should return the same resource, no matter at which peer the lookup starts.
+
+It must also **guarantee** to find a resource if it exists in the system.
+
+One way of structuring nodes in a GUID space is using a **Pastry** system.
+
+### Pastry
+A pastry structure is a ring of GUIDs each of which uniquely identifies a node.
+
+A Pastry GUID is a number in the range [0, 2<sup>128</sup>[
+
+A peer P(i)'s neighbors are the 2 peers closest to it: P(i - I) and P(i + I).
+
+P(i) also knows about the `l` closest peers above and below it. This would be the Leaf set `{P(i - l), ..., P(i), ..., P(i + l)}`
+
+P(i) is responsible for all resources G that are closest to P(i).
+
+#### Simple routing
+Simple routing works. It routes messages correctly, but inefficiently. It doesn't use a routing table.
+
+1) Each node holds a *leaf set* (a vector `L` of size `2l`). This set contains the GUIDs and IP-addresses of the nodes **whose GUIDS are numerically closest on either side of its own (`l` above and `l` below)**.
+
+Be aware that Pastry is circular. Thus, the lower neighbor of the peer with GUID 0 is the peer with GUID 2<sup>128</sup> - 1.
+
+Pastry is responsible for maintaining these leaf sets as nodes come and go.
+
+It works like this:
+1) A node `P` receives a message `m` with destination address `D`.
+2) It compares D with its own GUID `P` as well as the GUIDS of all the nodes in its' leaf set and forwards `m` to the one that is numerically closest to `D`.
+
+From this we know that for each step, `m` will get closer and closer to `D`.
+
+<img src="./assets/simple_routing_pastry_p2p.png" />
+
+It is still very inefficient, though. We need to use a routing table to reach `O(lg(N))`.
+
+#### Prefix routing (routing using routing tables)
+In this way of routing, each node maintains a tree-structured routing table containing GUIDs and IP addresses for a set of nodes spread **throughout the entire range of 2<sup>128</sub> possible GUID values, with increased density of coverage for GUIDs numerically close to its own.**
+
+Here's how a routing table is structured for a node:
+
+- GUIDs are viewed as hexadecimal values and the table classifies GUIDs based on their hexadecimal prefixes.
+- The table has as many rows as there are hexadecimal digits in a GUID.
+- Any row `n` contains 16 entries: an entry for each possible value of the nth hexadecimal digit, excluding the value in the local node's GUID.
+
+<img src="./assets/pastry_p2p.png" />
+
+The algorithm in pseudo-code per node on an incoming message `m` is then:
+
+- If the destination `D` is within the leaf set `L` or is the current node `P`:
+	-	 Forward message `M` to the element `L`<sub>`i`</sub> of the leaf set `L` with the GUID closest to `D` or the current node `P`.
+- **else** use the routing table to despatch the message `m` to a node with a closer GUID:
+	- Find `p`, the length of the longest common prefix of the destination node `D` and the current node `P`, and `i`, the `(p+1)`th hexadecimal digit of `D`.
+	- Let R = `Routing table(P)`. Let `R[p, i]` be the element at column i, row p.
+	- If `R[p, i] != null`, forward the message `m` to `R[p, i]`. This is the same as saying that we should route the message `m` to a node with a longer common prefix.
+- **else** there is no entry in the routing table. Forward the message `m` to any node in the current node `P`'s Leaf set or routing table with a common prefix of length `p` but a GUID that is numerically closer to the destination node `D`.
+
+### Joining a Pastry system.
+When a new node joins a Pastry system, it:
+1 - Computes a suitable GUID (typically by applying the SHA-1 hashing function to its public key).
+2 - Makes contact with a nearby pastry node. *Nearby* refers to network distance, i.e. few network hops, latency.
+3 - The new node, `A` sends a `join()` request to the nearby node `B`, giving itself, `A` as the destination. `B` dispatches the `join` message via Pastry in the normal way.
+4 - Pastry then routes the `join` message to the existing node whose GUID is numerically closest to `A`. Lets call that node `C`.
+5 - `B`, `C` and all other nodes through which the `join` message was routed on its way to `C` transmits whatever relevant parts they have in their routing tables and leaf sets to the new node `A` which then constructs its own routing table and leaf set from them, requesting additional information if necessary.
+6 - `A` now transmits its own contents to all the nodes in its routing table and leaf set so that *they* can adjust their own tables and incorporate the new node.
+
+All of this requires `O(lg(n))` messages. Great!
+
+### Nearest neighbor algorithm in Pastry
+
+That a node is nearest to another node doesn't necessarily mean that it is close in a physical sense. Its just that there is no other node that is nearer.
+
+Pastry includes a *nearest neighbor* algorithm which recursively measures the round-trip delay for a probe message periodically sent to each member of the leaf set of the nearest currently known pastry node.
+
+**Pastry chooses the closest "candidate" in the routing table in terms of IP distance.**
+- **First hop has long GUID but short IP distance.**
+- **Following hops has exponentially longer IP-distance, as candidate sets get exponentially smaller.**
+- **Last hop is the longest in IP distance.**
+
+### Leaving a Pastry system
+When a node leaves, it doesn't send a *'goodbye'* message. However, each peer always send regular *heartbeat* messages to its higher neighbor. If a peer detects its lower neighbor `P` has left, it tells its leaf set. Each peer then checks connectivity to `P` and updates their leaf set accordingly.
+
+Routing tables entries are also checked at intervals and replaced if they have left.

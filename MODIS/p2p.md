@@ -59,7 +59,8 @@ There are various ways to accomplish this. As always, we want to archive at leas
 #### Solution - Random walk
 One way is simply "walking" the tree/graph at random. P1 would send a message `m=<<SEARCH(G)>>` to one of its neighbors. If the neighbor has G, it responds with it (returns it) to P1. Otherwise, it sends `m` on to some neighbor who hasn't yet seen `m`. If all neighbors have seen `m`, the original message `m` is simply returned to P1.
 
-** But this is not scalable! **
+**But this is not scalable!**
+
 Clearly, the worst case complexity of this would be `O(N)`. That would be the case if we had to traverse *all* nodes before finding the node that has the resource.
 
 #### Solution - Flooding
@@ -112,10 +113,10 @@ From this we know that for each step, `m` will get closer and closer to `D`.
 
 <img src="./assets/simple_routing_pastry_p2p.png" />
 
-It is still very inefficient, though. We need to use a routing table to reach `O(lg(N))`.
+It is still very inefficient, though. We need to use a routing table to reach `O(log(N))`.
 
 #### Prefix routing (routing using routing tables)
-In this way of routing, each node maintains a tree-structured routing table containing GUIDs and IP addresses for a set of nodes spread **throughout the entire range of 2<sup>128</sub> possible GUID values, with increased density of coverage for GUIDs numerically close to its own.**
+In this way of routing, each node maintains a tree-structured routing table containing GUIDs and IP addresses for a set of nodes spread **throughout the entire range of 2<sup>128</sup> possible GUID values, with increased density of coverage for GUIDs numerically close to its own.**
 
 Here's how a routing table is structured for a node:
 
@@ -138,13 +139,18 @@ The algorithm in pseudo-code per node on an incoming message `m` is then:
 ### Joining a Pastry system.
 When a new node joins a Pastry system, it:
 1 - Computes a suitable GUID (typically by applying the SHA-1 hashing function to its public key).
+
 2 - Makes contact with a nearby pastry node. *Nearby* refers to network distance, i.e. few network hops, latency.
+
 3 - The new node, `A` sends a `join()` request to the nearby node `B`, giving itself, `A` as the destination. `B` dispatches the `join` message via Pastry in the normal way.
+
 4 - Pastry then routes the `join` message to the existing node whose GUID is numerically closest to `A`. Lets call that node `C`.
+
 5 - `B`, `C` and all other nodes through which the `join` message was routed on its way to `C` transmits whatever relevant parts they have in their routing tables and leaf sets to the new node `A` which then constructs its own routing table and leaf set from them, requesting additional information if necessary.
+
 6 - `A` now transmits its own contents to all the nodes in its routing table and leaf set so that *they* can adjust their own tables and incorporate the new node.
 
-All of this requires `O(lg(n))` messages. Great!
+All of this requires `O(log(n))` messages. Great!
 
 ### Nearest neighbor algorithm in Pastry
 

@@ -29,5 +29,19 @@ Data replication (in a physical sense) is great. Redundancy is good. If disk A f
 	- This specific project won't have any support post-release, but nevertheless it should be structured and maintainable, just like any real-world application.)
 	-	Documentation (for developers, for clients)
 
-### WIP Subsystem Package diagram:
-![WIP Subsystem Package diagram](assets/wip_subsystem_package_diagram.png "WIP Subsystem Package diagram")
+## Quality assurance and Testing
+- Faults in interface spec
+	-	Mismatch between client needs and whats offered.
+	- Mismatch between requirements and implementation.
+- Algorithmic faults.
+	-	Missing init
+	- Incorrect branching condition.
+	- Missing test for null
+- Mechanical faults.
+	-	Operating temp outside equipment spec
+	- Power failure
+- Errors
+	-	Wrong user input
+	- Null ref Errors
+	- Concurrency Errors
+	- Exceptions

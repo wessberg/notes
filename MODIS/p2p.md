@@ -1,5 +1,7 @@
 ## Peer-to-Peer systems
 
+> Chapter 10, Coulouris
+
 A scalable decentralized alternative to the client/server architecture where all nodes in the network acts both as client and server.
 
 ### Traits
@@ -167,3 +169,33 @@ Pastry includes a *nearest neighbor* algorithm which recursively measures the ro
 When a node leaves, it doesn't send a *'goodbye'* message. However, each peer always send regular *heartbeat* messages to its higher neighbor. If a peer detects its lower neighbor `P` has left, it tells its leaf set. Each peer then checks connectivity to `P` and updates their leaf set accordingly.
 
 Routing tables entries are also checked at intervals and replaced if they have left.
+
+### Tapestry
+Tapestry is similar to Pasty in many ways. It too implements a distributed hash table and routes messages to nodes based on GUIDs associated with resources using prefix routing. However, Tapestry's API conceals the DHT from applications behind a so-called *Distributed Object Location and Routing (DOLR)* interface
+<img src="./assets/dolr_interface.png" />
+
+The point is that nodes that hold resources use the `publish(GUID)` primitive to make them known to Tapestry, and the holders of resources remain responsible for storing them. Replicated resources are published with the same GUID by each node that holds a replica. This allows Tapestry to place replicas close to frequent users in terms of network distance in order to reduce latency and minimize network load or to ensure tolerance of network and host failures.
+
+In Tapestry, **160-bit** identifiers are used to refer both to objects and to the nodes that perform routing actions. Here, identifiers are *NodeIds* if they refer to computers that perform actions and *GUIDS* if they refer to objects.
+
+## Structured vs unstructured P2P systems.
+<table>
+	<caption>Advantages and disadvantages of using structured and unstructured peer-to-peer systems</caption>
+	<tr>
+		<td></td>
+		<td><strong>Structured P2P</strong></td>
+		<td><strong>Unstructured P2P</strong></td>
+	</tr>
+	<tr>
+		<td><em>Advantages</em></td>
+		<td>Guaranteed to locate objects (assuming they exist) and can offer time and complexity bounds on this operation; relatively low message overhead.</td>
+		<td>Self-organizing and naturally resilient to node failure.</td>
+	</tr>
+	<tr>
+	<td><em>Disadvantages</em></td>
+	<td>Need to maintain often complex overlay structures, which can be difficult and costly to achieve, especially in highly dynamic environments.</td>
+	<td>Probabilistic and hence cannot offer absolute guarantees on locating objects; prone to excessive messaging overhead which can affect scalability.</td>
+	</tr>
+</table>
+
+There is no doubt that the *maintenance* argument is worth considering when it comes to disadvantages of structured P2P-systems, especially in environments where nodes come and go very frequently.

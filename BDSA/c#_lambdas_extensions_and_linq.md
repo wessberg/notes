@@ -1,6 +1,50 @@
-## (C#) Lambdas, Extensions and LINQ
+# (C#) Lambdas, Extensions and LINQ
 > [PrC#6]: chapters 9 and 13.
 > [C#P2]: chapters 12.22, 12.23, 12.24, 12.25
+
+### Delegates
+Delegates are **addresses to methods**. Its like function pointers from C++ except not to a memory location but to a complex, type-safe classes that define the return types and types of parameters.
+
+Delegates are used **when you want to pass methods around to other methods**.
+
+Here's an example of how to declare a `delegate`:
+```csharp
+delegate void IntMethodInvoker(int x);
+```
+
+This indicates that each instance of this delegate can hold a reference
+to a method that takes one `int` parameter and returns `void`.
+
+Another example could be a method that takes no arguments and returns a string:
+```csharp
+delegate string GetAString();
+```
+
+The delegate then becomes a **type**, meaning, its effectively a `class` with a single method. To use a delegate, you'd have to implement it:
+```csharp
+delegate string GetAString();
+public static void Main() {
+	int x = 40;
+	GetAString AMethod = new GetAString(x.ToString);
+	AMethod(); // Returns a string.
+}
+```
+This will create a method, `AMethod` which takes no arguments and returns a string when called.
+
+Delegates in C# always has a one-parameter constructor, the parameter being the method to which the delegate refers. The methods signature must reflect the signature of the delegate (int.ToString doesn't take arguments and returns a string, so it is valid).
+
+#### An easier way of writing Delegates
+In the example above, we could also have written the following:
+```csharp
+GetAString AMethod = x.ToString;
+```
+
+C# would then translate that to the previous example. Its a short-hand syntactical-sugar way of doing the same thing. This is called **Delegate inference**.
+
+### Lambda expressions
+Lambda expressions are directly related to delegates.
+
+# From the lecture
 
 ## .NET Core
 

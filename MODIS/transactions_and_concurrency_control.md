@@ -302,3 +302,197 @@ Here's what should happen:
 	3. If the object has a non-conflicting lock (a *Shared/Read* lock) set by another Transaction, The lock is shared and proceed with the operation.
 	4. If the object has already been locked in the same Transaction, promote the lock if necessary and proceed (if there is a conflicting lock, wait until it is unlocked.)
 2. When a transaction is committed or aborted, the server unlocks all objects it locked for the transaction.
+
+### Implementing Locks
+Lets call the granter of locks for `LockManager`.
+- It holds a set of `Lock` objects in a hash table
+- a `Lock` has:
+	-	The ID of the locked object.
+	- The TransactionID(s) of the Transaction(s) that currently hold the lock (for instance, *Shared* locks can have several holders.)
+	- The type of lock (`"shared"|"exclusive"`)
+
+There is a reference implementation in Java in the book on pages 697-698.
+
+### Deadlocks
+Using locks can lead to deadlocks. They happen if two transactions are waiting and each is dependent on the other to release a lock so it can resume.
+
+The definition of a Deadlock is a state in which each member of a group of Transactions is waiting for some other member to release a lock.
+
+A *wait-for* graph can be used to represent the waiting relationships between current Transactions.
+
+### Wait-for graphs
+In a *wait-for* graph, the nodes represent transactions and the edges represent *wait-for* relationships between Transactions.
+
+For instance, given Transactions *T* and *U*, there will be an edge from node *T* to node *U* if Transaction *T* is waiting for Transaction *U* to release a lock.
+
+As you can imagine, if there is an edge from *T* to *U* *AND* from *U* to *T*, we are in a Deadlock situation.
+
+This is also called **a cycle**.
+It can be indirect, however. Imagine that *T* waits for *U* and *U* waits for *V* and *V* waits for *T*.
+
+<img src="assets/transaction_cycle.png" />
+
+This is a cycle too. Every Transaction is blocked and waiting for locks. If a transaction in a cycle is aborted, the locks are released and that cycle is broken.
+
+### Preventing Deadlocks.
+One simple but not good way is to lock all of the objects used by a Transaction when it starts.
+
+Such a Transaction cannot run into deadlocks with other Transactions, but it unnecessarily restricts access to shared resources.
+
+Also, sometimes you don't know at the start of a Transaction which objects that will be used.
+
+#### *Upgrade* locks
+There is a third type of lock called an *Upgrade* lock. It is intended to avoid deadlocks. Deadlocks often happen by first having a *Read/Shared* lock and then later upgrading it to a *Write/Exclusive* lock.
+
+An *Upgrade* lock is permitted to read an object, but it is *NOT* shared, meaning that no other Transaction can read an object simultaneously (e.g. have an *Upgrade* long simultaneously.). It cannot be set implicitly but must be requested by the client.
+
+#### Deadlock detection
+Imagine implementing a representation of a *wait-for* graph in the `LockManager`. It could then check for cycles from time to time, maybe even each time an edge is added. It could then abort a Transaction to escape the Deadlock.
+
+Choosing the right Transaction to abort depends on the specific case.
+
+#### Timeouts
+You could also give a lock a limited lifetime.
+After this time, the lock is released **if and only if** another Transaction waits for the lock to be released (otherwise, just keep it there, but do check from time to time to see if that changes.)
+
+This is also called **vulnerable locks**.
+When a lock is force-released, it is **aborted**.
+
+### Increasing concurrency in locking schemes.
+
+#### Two-version locking
+Allows one Transaction to write tentative versions of objects while other transactions read from the committed versions of the same objects. *Read* operations only wait if another transaction is currently committing the same object.
+
+Transactions cannot commit their *Write* operations immediately if other uncompleted transaction have read the same object(s). Thus, such a Transaction must wait until the reading have completed.
+
+This means:
+- It allows for added *Read* concurrency.
+- Writing may take longer time.
+- Due to the fact that a write operation must wait for a *Read* operation to be committed, a write may need to be aborted if a deadlock situation happens.
+
+It uses a fourth kind of lock: A *Commit* lock.
+
+#### *Commit* locks
+If an object has a *Commit* lock, no *Read* or *Write* lock can be set on it.
+
+When a Transaction is *committed*, it attempts to convert all *Write* locks to *Commit* locks.
+
+#### Hierarchic locks (Multi-/Mixed- Granularity locks)
+To reduce locking overhead, one can use hierarchic locks (also called multi-/Mixed- Granularity locks).
+
+At each level, the setting of a parent lock has the same effect as setting all the equivalent child locks.
+Imagine the following structure:
+
+<table>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td>Week</td>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>Monday</td>
+	<td>Tuesday</td>
+	<td>Wednesday</td>
+	<td>Thursday</td>
+	<td>Friday</td>
+	<td>Saturday</td>
+	<td>Sunday</td>
+</tr>
+</table>
+Say you wanted to lock all weekdays.
+You could lock *all* weekdays which would cost you 7 operations. You could then instead simply lock the parent, *the week*, in one operation.
+
+When attempting to read or write one of the weekdays, you would then check recursively if any of your parents had a blocking lock.
+
+This is accomplished using *Intention* locks.
+
+#### *Intention* locks
+Before a child node is granted a *Read*/*Write* lock an *Intention* to *Read*/*Write* lock is set on the parent node and its ancestors (if any).
+
+An *Intention* lock is compatible with other *Intention* locks but conflicts with *Read* and *Write* locks according to the usual rules.
+
+Setting a *Read* lock on a parent, for instance on a *Week* in the above example with the table would prevent writing to any of the substructures.
+
+### *Intention* Lock compatibility table
+<table>
+	<tr>
+		<td><strong>Existing lock</strong></td>
+		<td><strong>Read-lock request</strong></td>
+		<td><strong>Write-lock request</strong></td>
+		<td><strong>Intention-Read-lock request</strong></td>
+		<td><strong>Intention-Write-lock request</strong></td>
+	</tr>
+	<tr>
+		<td>none</td>
+		<td>OK</td>
+		<td>OK</td>
+		<td>OK</td>
+		<td>OK</td>
+	</tr>
+	<tr>
+		<td>Read</td>
+		<td>OK</td>
+		<td>wait</td>
+		<td>OK</td>
+		<td>wait</td>
+	</tr>
+	<tr>
+		<td>Write</td>
+		<td>wait</td>
+		<td>wait</td>
+		<td>wait</td>
+		<td>wait</td>
+	</tr>
+	<tr>
+		<td>I-Read</td>
+		<td>OK</td>
+		<td>wait</td>
+		<td>OK</td>
+		<td>OK</td>
+	</tr>
+	<tr>
+		<td>I-Write</td>
+		<td>wait</td>
+		<td>wait</td>
+		<td>OK</td>
+		<td>OK</td>
+	</tr>
+</table>
+
+## Disadvantages of locking
+-	Lock maintenance represents an overhead. Locking is only really needed for a minority of Transactions in most cases.
+- Using locks can result in Deadlock. Deadlock prevention reduces concurrency severely.
+- To avoid cascading aborts, locks cannot be released until the end of a Transaction which may reduce the potential for concurrency.
+
+There is an alternative way of doing concurrency control:
+
+## Optimistic Concurrency control
+
+It is based on the observation that, in most applications, the likelihood of two Transactions accessing the same object is low. Transactions are allowed to proceed as though there were no possibility of conflict with other Transactions until the client completes its task and issues a `closeTransaction` request.
+
+*When* a conflict arises, some Transaction is generally aborted.
+
+In Optimistic Concurrency control, a Transaction goes through the following phases:
+1. *Working phase*:
+	-	During the working phase, each Transaction has a tentative version of each of the objects that it updates (a copy of the most recently committed version of the object). That allows for a transaction to abort without effects.
+	- *Read* operations are performed immediately if a tentative version for that Transaction already exists. Otherwise, it accesses the most recently committed value of the object.
+	- *Write* operations record the new values of the objects as tentative values (which are invisible to other transactions effectively eliminating the possibility of dirty reads). So, if there are concurrent Transactions, multiple tentative versions of the same object may exist at the same time.
+2. *Validation phase*:
+	-	When `closeTransaction()` is called, the Transaction is validated. Here, it is established whether or not its operations on objects conflict with operations of other transactions on the same objects.
+	- If validation is successful, the transaction can commit.
+	If the validation fails, then conflict resolution must be used. That is domain and case-specific.
+3. *Update phase*:
+	-	If a transaction is validated, all changes recorded in its tentative version are made permanent.
+	- *Read* transactions can commit immediately after passing validation.
+	- *Write* transactions can commit once the tentative version of the objects have been recorded in permanent storage.
+
+### Validating Transactions
+Here, it is ensured that the scheduling of a Transaction is serially equivalent with respect to all other *overlapping* Transactions (meaning any Transactions that has not yet committed).
+
+Each Transaction is given a Transaction number when it enters the Validation phase. If it validates successfully, it retains this number. Otherwise, if it is aborted or if it is *Read* only, the number is released for reassignment.
+
+Transaction numbers are assigned in ascending sequence. The lower the number, the earlier a Transaction occurred in time.

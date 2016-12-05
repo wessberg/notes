@@ -499,3 +499,40 @@ Here, it is ensured that the scheduling of a Transaction is serially equivalent 
 Each Transaction is given a Transaction number when it enters the Validation phase. If it validates successfully, it retains this number. Otherwise, if it is aborted or if it is *Read* only, the number is released for reassignment.
 
 Transaction numbers are assigned in ascending sequence. The lower the number, the earlier a Transaction occurred in time.
+
+### Backward Validation
+In Backward Validation, the *read* set of the Transaction being validated is compared with the *Write* sets of other Transactions that have already committed.
+
+The only way to resolve conflicts is then to abort the Transaction that is undergoing validation.
+
+Transactions that have no *Read* operations (only *Write* operations) need not be checked.
+
+Optimistic Concurrency control with Backward Validation requires that the *Write* sets of old committed version of objects corresponding to recently committed transactions are retained until there are no unvalidated overlapping Transactions with which they might conflict.
+
+### Forward Validation
+In forward validation, the *Write* set of *T<sub>v/<sub>* is compared with the *Read* sets of all overlapping active Transactions (those that are still in their working phase).
+
+### Forward vs Backward validation
+Forward Validation allows flexibility in the resolution of conflicts whereas backward validation allows only one choice - to abort the Transaction being validated.
+
+Generally, the *Read* sets of Transactions are much larger than *Write* sets. Therefore, Backward validation compares a possibly large *Read* set against old write sets, whereas Forward validation checks a small write set against the *Read* sets of active Transactions.
+
+### Starvation
+When a Transaction is aborted, it will normally be restarted by the client. But in schemes that rely on aborting and restarting Transactions, there is no guarantee that a particular Transaction will ever pass validation checks (for it may come into conflict with other Transactions for the use of objects each time it is restarted).
+
+The prevention of a Transaction ever being able to commit is called **starvation**.
+
+Those are rare, but if using Optimistic Concurrency control, you must ensure that no client have its Transaction(s) aborted repeatedly.
+
+## Comparison of methods for Concurrency control
+TL;DR: Timestamp ordering is best for Transactions with predominantly *Read* operations. Locking is best for Transactions with predominantly *Write* operations.
+
+In Optimistic Concurrency control, all transactions are allowed to proceed, but some are aborted when they attempt to commit.
+
+With Forward Validation, Transactions are aborted earlier.
+
+So, you might say that Optimistic Concurrency control has the least space and performance overhead in the average case but has the greatest overhead in the worst case (Transactions may have to be restarted *several* times).
+
+**The predominant method of concurrency control of access to data in distributed systems is locking**.
+
+**Popular apps such as Google Docs and Dropbox use Optimistic Concurrency control with conflict resolution.**

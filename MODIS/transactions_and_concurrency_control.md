@@ -477,14 +477,17 @@ It is based on the observation that, in most applications, the likelihood of two
 *When* a conflict arises, some Transaction is generally aborted.
 
 In Optimistic Concurrency control, a Transaction goes through the following phases:
+
 1. *Working phase*:
 	-	During the working phase, each Transaction has a tentative version of each of the objects that it updates (a copy of the most recently committed version of the object). That allows for a transaction to abort without effects.
 	- *Read* operations are performed immediately if a tentative version for that Transaction already exists. Otherwise, it accesses the most recently committed value of the object.
 	- *Write* operations record the new values of the objects as tentative values (which are invisible to other transactions effectively eliminating the possibility of dirty reads). So, if there are concurrent Transactions, multiple tentative versions of the same object may exist at the same time.
+
 2. *Validation phase*:
 	-	When `closeTransaction()` is called, the Transaction is validated. Here, it is established whether or not its operations on objects conflict with operations of other transactions on the same objects.
 	- If validation is successful, the transaction can commit.
 	If the validation fails, then conflict resolution must be used. That is domain and case-specific.
+
 3. *Update phase*:
 	-	If a transaction is validated, all changes recorded in its tentative version are made permanent.
 	- *Read* transactions can commit immediately after passing validation.

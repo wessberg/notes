@@ -119,6 +119,8 @@ If each of several Transactions is known to have the correct effect when done on
 
 An interleaving of the same operations of transactions in which the combined effect is the same as if the transactions had been performed one at a time in some order is a **serially equivalent interleaving**.
 
+For two transactions to be serially equivalent, it is necessary and sufficient that all pairs of conflicting operations of two transactions be executed in the same order at all of the objects they both access.
+
 Using serial equivalence prevents occurrence of lost updates and inconsistent retrievals.
 
 **For two Transactions T and U that writes to objects *i* and *j* to be serially equivalent, one of the following must be true:**
@@ -128,6 +130,57 @@ Using serial equivalence prevents occurrence of lost updates and inconsistent re
 OR
 
 2. *U* accesses *i* before *T* and *U* accesses *j* before *T*.
+
+Andreas' explanation is a pretty good approach:
+
+<em>
+Før at to transactions (T og U) er serial equivalent skal de have de samme par af konflikter, og variablerne skal ende med samme værdier som hvis eksekveret efter hinanden en ad gange (hvilket vil sige enten først alle operations fra T efterfulgt af alle operations fra U eller omvendt).
+
+I den opgave har vi følgende transactions:
+T: x = read(i; write(j, 44);
+U: write(i, 55); write(j, 66);
+
+Hvis vi eksekverede alle operations i T før U ville vi have disse konflikter:
+* read(i) —> write(i, 55);
+* write(j, 44) —> write(j, 66)
+
+Og slutresultatet ville blive:
+* x = 10
+* i = 55
+* j = 66
+
+Hvis vi eksekverede all operations i U før T ville vi have disse konflikter:
+* write(i, 55) —> read(i);
+* write(j, 66) —> write(j, 44);
+
+Og slutresultatet ville blive
+* x = 55
+* i = 55
+* j = 44
+
+I (a) finder vi konflikterne:
+* read(i) —> write(i, 55);
+* write(j, 44) —> write(j 66);
+
+Med slutresultatet
+* x = 10
+* i = 55
+* j = 66
+
+Dette er de samme konflikter og værdier som hvis vi eksekverende alle operations i T før U. Derfor er den serial equivalent.
+
+Mht til (b) og (c) er de ikke interleaved men serial, derfor mener jeg ikke man kan kalde dem serially equivalent selv de har samme værdier og konflikter som en serial.
+
+I (d) finder vi konflikterne
+* write(i, 55) —> read(i)
+* write(j, 66) —> write(j, 44)
+
+Med slutresultatet
+* x = 55
+* i = 55
+* j = 44
+
+Dette er de samme konflikter og værdier som hvis vi eksekverende alle operations i U før T. Derfor er den serial equivalent.</em>
 
 ### Conflicting operations
 When a pair of operations *conflicts*, we mean that their combined effect depends on the order in which they are executed.

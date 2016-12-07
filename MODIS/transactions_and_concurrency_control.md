@@ -554,7 +554,7 @@ Each Transaction is given a Transaction number when it enters the Validation pha
 Transaction numbers are assigned in ascending sequence. The lower the number, the earlier a Transaction occurred in time.
 
 ### Backward Validation
-In Backward Validation, the *read* set of the Transaction being validated is compared with the *Write* sets of other Transactions that have already committed.
+In Backward Validation, the *read* set of the Transaction being validated is compared with the *Write* sets of other recent Transactions that have already committed.
 
 The only way to resolve conflicts is then to abort the Transaction that is undergoing validation.
 

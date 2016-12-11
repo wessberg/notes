@@ -132,3 +132,5 @@ Here's the *sending* rule for a process P<sub>i</sub>:
 Pi records its state.
 For each outgoing channel C on which a marker has not been sent, i sends a marker along.
 ```
+
+TODO: Read the chapter in the book!

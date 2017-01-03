@@ -395,3 +395,285 @@ Switches separate the incoming traffic and transmit it only on the relevant outg
 
 #### Tunneling
 A pair of nodes connected to separate networks **of the same type** can communicate through another type of network by constructing a protocol 'tunnel'. It is a software layer that transmits packets through an alien network environment.
+
+Tunneling is used to support the migration of the internet to the IPv6 protocol. Where necessary, IPv6 packets are encapsulated in IPv4 and transported over the intervening IPv4 networks in that manner.
+
+## Internet Protocols
+Two important things:
+- **TCP**: Transmission Control Protocol
+- **IP**: Internet Protocol
+
+Usually mentioned together: TCP/IP as a single protocol suite.
+
+Examples of application services and application-level protocols based on TCP/IP are the Web (HTTP), email (SMTP, POP), file transfer (FTP) and Telnet (telnet).
+
+**TCP is a transport protocol.**. It can either be used to support applications directly, or additional protocols can be layered on it to provide additional features.
+
+HTTP is usually transported by the *direct* use of TCP, but when end-to-end security is required, the Transport Layer Security (TLS) protocol is layered on top of TCP to produce secure channels and HTTP messages are transmitted via the secure channels.
+
+### Transport protocols on the internet
+There are two:
+- TCP (Transport Control Protocol)
+- UDP (User Datagram Protocol)
+
+<img src="assets/tcp_ip_internet.png" />
+
+#### TCP
+TCP is a reliable connection-oriented protocol.
+
+#### UDP
+UDP is a datagram protocol that does not guarantee reliable transmission.
+
+### IP addressing
+The scheme used for assigning host addresses to networks and the computers connected to them had to satisfy the following requirements:
+- It must be *universal* - any host must be able to send packets to any other host in the Internet.
+- It must be efficient in its use of the address space. It is impossible to predict the ultimate size of the Internet and the number of network and host addresses likely to be required. The address space must be carefully partitioned to ensure that addresses will not run out.
+
+When the TCP/UP protocols were being developed, provision for approximately 4 billion addressable hosts was considered adequate.
+
+However, the rate of growth of the Internet has far outstripped all predictions. Also, the address space has been allocated and used much less efficiently than expected.
+
+**An IP-address is a 32-bit numeric identifier containing a network identifier, which uniquely identifies on of the subnetworks in the Internet, and a host identifier, which uniquely identifies the host's connection to that network.**
+
+These Internet addresses, containing a network identifier and a host identifier, are usually written as a sequence of four numbers separated by dots. Each decimal number represents one of the four bytes (or *octets*) of the IP address.
+
+#### Classes of Internet address
+There are four allocated classes: A, B, C and D and a reserved one: E.
+
+- Class A addresses, with a capacity of 2<sup>24</sup> hosts on each subnet are reserved for very large networks like national wide area networks.
+- Class B addresses are allocated to organizations that operate networks likely to contain more than 255 computers.
+- Class C addresses are allocated to all other network operators.
+- Class D is reserved for Internet multicast communication, which is implemented in only some Internet routers.
+- Class E contains a range of unallocated addresses which are reserved for future requirements.
+
+<img src="assets/decimal_representation_ip.png" />
+
+#### Special IP addresses
+Internet addresses with host identifiers 0 and all 1s (binary) are used for special purposes.
+
+- Addresses with the host identifier set to 0 are used to refer to 'this host'.
+- A host identifier that is all 1s is used to address a broadcast message to *all* of the hosts connected to the network specified in the network identifier part of the address.
+
+#### Computers connected to several networks
+Host addresses include a network identifier. Thus, any computer that is connected to more than one network must have separate addresses on each. Thus, whenever a computer is moved to a different network, the Internet address much change.
+
+#### Running out of IP addresses
+It was beginning to become evident that we were likely to run out of IP addresses around 1996. Problem was, no-one really knew how many IP addresses they needed and was simply allocated way too many.
+
+We did three things:
+- Began development of a new protocol and addressing scheme, IPv6.
+- Radically modified the way in which IP addresses were allocated. The new allocation and routing scheme was called **classless interdomain routing (CIDR)**.
+- Enabled unregistered computers to access the Internet indirectly through routers that implement a *Network Address Translation (NAT)* scheme.
+
+## The IP protocol
+The IP protocol transmits datagrams from one host to another, if necessary via intermediate routers.
+
+<img src="assets/ip_packet_layout.png" />
+
+IP provides a delivery service that is described as offering *unreliable* or *best-effort* delivery semantics, because there is no guarantee of delivery.
+
+Packets can be lost, duplicated, delayed or delivered out of order.
+
+**The only checksum in IP is a header checksum which ensures that any corruptions in the addressing and packet management data will be detected.**
+
+There is no data checksum, leaving the higher-level protocols (TCP and UDP) to provide their own checksums.
+
+The IP layer puts IP datagrams into network packets suitable for transmission in the underlying network.
+
+When an IP datagram is longer than the MTU, it is broken into smaller packets at the source and reassembled at its final destination.
+
+### Address resolution (Address Resolution Protocol (ARP))
+It is the address resolution module that converts Internet addresses to network addresses for a specific underlying network.
+
+For example, if the underlying network is an Ethernet, the address resolution module converts 32-bit Internet addresses to 48-bit Ethernet addresses.
+
+Some hosts are connected directly to Internet packet switches. IP packets can be routed to them without address translation.
+
+For Ethernets and some other LANs, net network address of each computer is hard-wired into its network interface hardware and bears no direct relation to its Internet address. Translation then depends upon knowledge of the correspondence between IP addresses and addresses for the hosts on the local network and is done using **an address resolution protocol (ARP)**.
+
+### IP spoofing
+IP addresses include a source address - the IP-address of the sending computer. This, together with a port address encapsulated in the data field (for UDP and TCP packets) is often used by servers to generate a return address.
+
+**Unfortunately, it is not possible to guarantee that the source address given is in fact the address of the sender.**
+
+A malicious sender can easily substitute an address that is different from its own. That is called IP spoofing.
+
+### IP routing
+Each router in the Internet implements IP-layer software to provide a routing algorithm.
+
+- The first routing protocol of the Internet was RIP-1, based on the distance-vector algorithm.
+- Then came RIP-2, which could handle classless interdomain routing, better multicast routing and authentication of RIP packets to prevent attacks.
+- As the scale of the Internet has expanded, there has been a move towards link-state class of algorithms and the algorithm called *open shortest path first* which is based on a path-finding algorithm based on Dijkstra and has been shown to converge more rapidly than the RIP algorithm.
+
+### Default routes
+- Addresses 194.0.0.0 to 195.255.255.255 are in Europe.
+- Addresses 198.0.0.0 to 199.255.255.255 are in North America.
+- Addresses 200.0.0.0 to 201.255.255.255 are in Central and South America
+- Addresses 202.0.0.0 to 203.255.255.255 are in Asia and the Pacific.
+
+Note that once, IP addresses were allocated largely without regard to topology or geography, so there will be IP addresses that doesn't fit into the mentioned geographical regions.
+
+### Routing on a local subnet
+Packets addressed to hosts on the same network as the sender are transmitted to the destination host **in a single hop**.
+
+### Classless interdomain routing (CIDR)
+CIDR allocates a batch of contiguous Class C addresses to a subnet requiring more than 255 addresses. It also makes it possible to subdivide a Class B address space for allocation to multiple subnets.
+
+### Unregistered addresses and Network Address Translation (NAT)
+Not all devices connected to the internet need to be assigned a globally unique IP address. Computers that are attached to a local network and access the internet through a NAT-enabled router can rely upon the router to redirect incoming UDP and TCP packets for them.
+
+Here, the network has been allocated a single registered IP address, for instance 83.215.152.95 by its ISP.
+
+All of the internet-enabled devices on the network have been assigned unregistered IP address on the 192.168.1.x Class C subnet. Most of the internal computers and devices are allocated individual IP addresses dynamically by a Dynamic Host Configuration Protocol (DHCP) service running on the router.
+
+<img src="assets/nat_network.png" />
+
+The convention is to use one of three blocks addresses that IANA has reserved for private internets:
+- 10.x.x.x
+- 172.16.x.x
+- 192.168.x.x
+
+NAT addressing works as follows:
+
+- When a computer on the internal network sends a UDP or TCP packet to a computer outside it, the router receives the packet and saves the source IP address and port number to an available slot in its address translation table.
+
+- The router replaces the source address in the packet with the router's IP address and the source port with a virtual port number that indexes the table slot containing the sending computer's address information.
+
+- The packet with the modified source address and port number is then forwarded towards its destination by the router. The address translation table now holds a mapping from virtual port numbers to real internal IP addresses and port numbers for all packets sent recently by computers on the internal network.
+
+- When the router receives a UDP or TCP packet from an external computer it uses the destination port number in the packet to access a slot in the address translation table. It replaces the destination address and destination port in the received packet with those stored in the slot and forwards the modified packet to the internal computer identified by the destination address.
+
+#### NAT routers as servers
+NAT routers can be configured to forward all incoming requests on a given port to one particular internal computer that will then act as a server. The computer must retain the same internal IP address and this is achieved by allocation their addresses manually.
+
+While NAT was introduced as a temporary solution, it has enabled the expansion of internet use to proceed far further than was originally anticipated. It does have some limitations, for instance the one just explained. IPv6 is the solution. It enables full Internet participation for all computers and portable devices.
+
+### IPv6
+
+<img src="assets/ipv6_headers.png" />
+
+The advantages of IPv6 are:
+
+- *Address space*: **IPv6 addresses are 128 bits (16 bytes) long.**. This allows for an astronomical amount of IP-addresses.
+
+- *Routing speed*: The complexity of the IPv6 header and also the processing required at each node are reduced. No checksum is applied to the packet content and no fragmentation can occur once a packet has begun its journey. The loss of the checksum is acceptable because errors can be detected at higher levels. The thing about no fragmentation can be achieved by supporting a mechanism for determining the smallest MTU before a packet is transmitted.
+
+- *Real-time and other special services*: Specific packets can be handled more rapidly or with higher reliability than others due to the new *traffic class* and *flow label* fields in the IPv6 headers. Traffic class values 0 through 8 are for transmissions that can be slowed without disastrous effects on the application. Other values are reserved for packets hat must be delivered promptly or else dropped. Flow labels enable resources to be reserved in order to meet the timing requirements of specific real-time data streams such as live audio and video transmissions.
+
+- *Future evolution*: The *next header* field makes it possible to do future evolution. If non-zero, it defines the type of an extension header that is included in the packet. These header types can provide additional data such as information for routers, route definition, fragment handling, authentication, encryption and destination handling.
+
+- *Multicast and anycast*: IPv6 not only supports Multicast like IPv6, but also something called *anycast*. This service delivers a packet to *at least one* of the hosts that subscribes to the relevant address.
+
+- *Security*: Internet applications that require authenticated or private data transmission currently relies on the use of cryptographic techniques in the application-layer. If, however, security is implemented at the IP level, then it can be applied without the need for security-aware implementations of application programs. For instance, it could be implemented in a firewall without incurring the cost of encryption for internal communication. This is done in IPv6 through the *authentication* and *encrypted security payload* extension header types.
+
+#### Migration from IPv4
+All major operating systems such as Windows, Mac OS and Linux already include implementations of UDP and TCP sockets over IPv6. It takes a long time, though, since the basic protocol of the internet is IP and that every host and the software of every router must support IPv6 for it to work without tunneling.
+
+## MobileIP
+DHCP enables a newly connected device to dynamically acquire an IP address in the local subnet and discover the addresses of local resources such as a DNS server from a local DHCP server. This also makes it possible for laptops or smartphones to travel from one network to another - from ethernet to tethered internet via GSM.
+
+However, if a mobile computer or other device is to remain accessible to clients and resource-sharing applications when it moves between local networks and wireless networks, it must retain a single IP-number, but IP routing is subnet-based.
+
+MobileIP is a solution. IP communication continues normally when a mobile host computer moves between subnets at different locations. It is based upon the permanent allocation of a normal IP address to each mobile host on a subnet in its 'home' domain.
+
+- When the mobile host is connected at its home base, packets are routed to it in the normal way.
+- When it is connected to the Internet elsewhere, two agent processes take responsibility for rerouting.
+	-	The agents are a *home agent (HA)* and a *foreign agent (FA)*.
+
+#### Home agent (HA)
+Is responsible for holding up-to-date knowledge of the mobile host's current location (The IP address by which it can be reached).
+
+When a mobile host leaves its home site, it informs the HA, and the NA notes the mobile host's absence.
+
+During the absence, **it will behave as a proxy**. While doing so, the HA responds to ARP requests concerning the mobile host's IP address, giving its own local network address as the network address of the mobile host.
+
+#### Foreign agent (FA)
+When a mobile host arrives at a new site, it informs the FA at that site. The FA allocates a new, temporary IP address on the local subnet to it. The FA then contacts the HA, giving it the mobile host's home IP address and the temporary IP that has been allocated to it.
+
+<img src="assets/mobile_ip_agents.png" />
+
+## TCP and UDP
+TCP and UDP provide the communication capabilities of the Internet in a form that is useful for application programs.
+
+TCP and UDP together is a faithful reflection at the application programming level of the communication facilities that IPv4 has to offer. IPv6 is a different story: While it will continue to support TCP and UDP, it may be useful to introduce additional types of transport service to exploit them, once the deployment of IPv6 is sufficiently wide to justify their development.
+
+### Use of ports
+Whereas IP supports communication between pairs of computers (identified by their IP addresses), TCP and UDP as transport protocols must provide *process-to-process* communication. **It is accomplished by the use of ports.**
+
+*Port numbers* are used for addressing messages to processes within a particular computer and are valid *only* within that computer.
+
+Once an IP packet has been delivered to the destination host, the TCP- or UDP-layer software dispatches it to a process via a specific port at that host.
+
+### UDP features
+**UDP is almost a transport-level replica of IP**.
+A UDP datagram is encapsulated inside an IP packet.
+
+It has:
+- A short header that includes the source and destination port numbers (the corresponding host addresses are present in the IP header).
+- A *length* field.
+- A checksum.
+
+**UDP offers no guarantee of delivery**.
+UDP adds no additional reliability on top of IP except the checksum, which by the way is optional.
+
+All this amounts to the point that UDP provides a means of transmitting messages of up to 64 kilobytes of size (the max packet size permitted by IP) between pairs of processes or from one process to several in the case of multicast, with minimal additional costs or transmission delays above those due to IP transmission.
+
+That's great, but it does however restrict the usage of UDP to services that do not require reliable delivery of messages.
+
+### TCP features
+TCP is a much more sophisticated transport service. **It provides reliable delivery of arbitrarily long sequences of bytes via stream-based programming abstraction.**
+
+TCP is connection-oriented. Meaning, before any data is transferred, the sending and receiving processes must cooperate in the establishment of a bidirectional communication channel. TCP, also implemented over IP, includes additional mechanisms to meet the reliability guarantees:
+
+- *Sequencing*: A TCP sending process divides the stream into a sequence of data segments and transmits them as IP packets.
+	-	A sequence number is attached to each TCP segment. It gives the byte number within the stream for the first byte of the segment.
+	- The receiver uses the sequence numbers to order the received segments before placing them in the input stream at the receiving process.
+
+- *Flow control*: The sender takes care not to overwhelm the receiver or the intervening nodes.
+	- Whenever a receiver successfully receives a segment, it records its sequence number.
+	-	From time to time, the receiver sends an acknowledgement to the sender, giving the sequence number of the highest-numbered segment in its input stream together with a *window size*.
+	- The *window size* field in the acknowledgement segment specifies the quantity of data that the sender is permitted to send before the next acknowledgement.
+
+- *Retransmission*: The sender records the sequence numbers of the segments that it sends. When it receives an acknowledgement it notes that the segments were successfully received and it may delete from from its outgoing buffers. If any segment is **not** acknowledged within a specific timeout, the sender retransmits it.
+
+- *Buffering*: The incoming buffer at the receiver is used to balance the flow between the sender and the receiver. If the receiving process issues *receive* operations more slowly than the sender issues *send* operations, the quantity of data in the buffer will obviously grow. Ultimately, the buffer may overflow, and when that happens, incoming segments are simply dropped without recording their arrival. Their arrival is therefore not acknowledged and the sender is obliged to retransmit them.
+
+- *Checksum*: Each segment carries a checksum covering the header and the data in the segment. If a received segment does not match its checksum, the segment is dropped.
+
+## Domain names
+The internet supports a scheme for the use of symbolic names for hosts and networks (google.com, etc). The named entities are organized into a naming hierarchy. The named entities are called *domains* and the symbolic names are called *domain names*.
+
+The naming hierarchy is entirely independent of the physical layout of the networks that constitute the Internet.
+
+Domain names are convenient for human users, but must be translated to IP addresses before they can be used as communication identifiers. This is the responsibility of a Domain Name System (DNS) service.
+
+Applications pass requests to the DNS to convert the domain names that users specify into Internet addresses.
+
+The DNS is implemented as a server process that can be run on host computers anywhere in the Internet. **There are at least two DNS servers in each domain, and often more**.
+
+## Firewalls
+In an intranet with many computers and a wide range of software it is inevitable that some parts of the system will have weaknesses that expose it to security attacks.
+
+The purpose of a firewall is to monitor and control all communication into and out of an intranet. It is implemented by a set of processes that act as a gateway to an intranet, applying a security policy determined by the organization.
+Such a security policy may include any or all of the following:
+
+- *Service control*: To determine which services on internal hosts are accessible for external access and to reject all other incoming service requests. Outgoing service requests and the responses to them may also be controlled. These filtering actions can be based on the contents of IP packets and the TCP and UDP requests that they contain. As an example, an incoming HTTP request may be rejected if it is not directed to an official web server host.
+
+- *Behavior control*: To prevent illegitimate behavior that infringes the organizations policies. May require interpretation of messages at a higher level. For example, filtering of email 'spam' attacks may require examination of the sender's email address in message headers or, more controversially, the message contents.
+
+- *User control*: The organization may allow some users access to a resource while disallowing others users access to the same resource.
+
+Such a policy has to be expressed in terms of the filtering operations that are performed by filtering processes operating at several different levels:
+
+- *IP packet filtering*: Examining individual IP packets. May make decisions based on the destination and source addresses or based on the *service type* field and interpret the contents based on the type such as the port number to which they are addressed.
+
+- *TCP gateway*: Checks all TCP connection requests and segment transmissions.
+
+- *Application-level gateway*: Acts as a *proxy* for an application process. For example, to allow certain internal users to make certain connections to certain external hosts.
+
+### Virtual private networks (VPNs)
+Extend the firewall protection boundary beyond the local intranet by the use of cryptographically protected secure channels at the IP level.
+
+They may be used for individual external users or to implement secure connections between intranets located at different sites using public internet links.
+
+For example, a member of staff may need to connect to the organization's intranet via an Internet service provider. Once connected, they should have the same capabilities as a user inside the firewall.

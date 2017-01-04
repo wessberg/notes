@@ -677,3 +677,357 @@ Extend the firewall protection boundary beyond the local intranet by the use of 
 They may be used for individual external users or to implement secure connections between intranets located at different sites using public internet links.
 
 For example, a member of staff may need to connect to the organization's intranet via an Internet service provider. Once connected, they should have the same capabilities as a user inside the firewall.
+
+### Application program interface to UDP
+Provides a *message passing* abstraction. Enables a sending process to transmit a single message to a receiving process. The independent packets containing these messages are called *datagrams*.
+
+### Application program interface to TCP
+Provides the abstraction of a two-way *stream* between pairs of processes. The information communicated consists of a stream of data items with no message boundaries.
+
+## The AP for the Internet protocols
+### Characteristics of interprocess communication
+Message passing between a pair of processes can be supported by two message communication operations: *send* and *receive*.
+
+#### Synchronous and asynchronous communication
+##### Synchronous
+In the *synchronous* form, sending and receiving processes synchronize at every message. That means that *send* and *receive* are *blocking* operations.
+
+Whenever a *send* is issued the sending process is blocked until the corresponding *receive* is issued.
+
+Whenever a *receive* is issued by a process, it blocks until a message arrives.
+
+##### Asynchronous
+In the *asynchronous* form of communication, the use of the *send* operation is *non-blocking* in that the sending process is allowed to proceed as soon as the message has been copied to a local buffer and the transmission of the message proceeds in parallel with the sending process.
+
+The *receive* operation can have blocking and non-blocking variants.
+
+In the non-blocking variant, the receiving process proceeds with its program after issuing a *receive* operation, which provides a buffer to be filled in the background, but it must separately receive notification that its buffer has been filled, by polling or interrupt.
+
+In a programming language such as Java that supports multiple threads in a single process, the blocking *receive* has no disadvantages, for it can be issued by one thread while other threads in the process remain active.
+
+#### Message destinations
+In internet protocols, a message destination is a local port within a computer. **A port has exactly one receiver (except for multicast ports), but can have many senders**
+
+#### Reliability
+A point-to-point message service can be described as reliable if messages are guaranteed to be delivered despite a 'reasonable' number of packets being dropped or lost. For integrity, messages must arrive uncorrupted and without duplication.
+
+#### Ordering
+Some applications require messages to be delivered in *sender order* (the order in which they were transmitted by the sender).
+
+## Sockets
+Both UDP and TCP use the *socket* abstraction which provides an endpoint for communication between processes.
+
+We say that Interprocess communication consists of transmitting a message between a socket in one process and a socket in another process. For a process to receive messages, its socket must be bound to a local port and one of the Internet addresses of the computer on which it runs.
+
+Each socket is associated with a particular protocol - either UDP or TCP.
+
+## UDP datagram communication
+To send or receive messages, a process must first create a socket bound to an Internet address of the local host and a local port. A server will bind its socket to a *server port* (one that it makes known to clients so that they can send messages to it). A client binds its socket to any free local port.
+
+### Failure model for UDP datagrams
+Remember, reliable communication is defined in terms of two properties: Integrity and validity.
+
+UDP datagrams suffer from the following kinds of failures:
+- *Omission failures*: Messages may be dropped, either because of a checksum error because no buffer space is available at the source or destination.
+- *Ordering*: Messages can sometimes be delivered out of sender order.
+
+### When is UDP the right choice
+An example is the Domain Name System (DNS) which is implemented over UDP. Voice over IP (VoIP) is also based on UDP.
+
+Reasons being they do not suffer from the traditional TCP overhead of transmission of extra messages, added latency and the need to store information at the source and destination.
+
+## TCP stream communication
+The following characteristics of the network are **hidden** by the stream abstraction:
+
+- *Message sizes*: The application can choose how much data it writes to a stream or reads from it. It may be very small or very large sets of data.
+
+- *Lost messages*: TCP's acknowledgement scheme makes sure that even if a message gets dropped, it will be attempted retransmitted until it gets delivered.
+
+- *Flow control*: TCP attempts to match the speeds of the *read* and *write* processes. If the writer is too fast for the reader, then it is blocked until the reader has consumed sufficient data.
+
+- *Message duplication and ordering*: Identifiers are associated with each IP packet which enables the recipient to detect and reject duplicates *or* to reorder messages that do not arrive in sender order.
+
+- *Message destinations*:  The first thing happening is the two processes establishing a *connection*. Once done, they can read from or write to the stream without ever needing to use the Internet addresses and ports.
+
+### TCP roles
+It is assumed, the when establishing a connection, one process plays the client role and the other plays the server role, **but thereafter they could be peers.**
+
+The client role creates a stream bound to any port and then makes a *connect* request asking for a connection to a server at its server port.
+
+The server role involves creating a *listening socket* bound to a server port and waiting for clients to request connections.
+
+When the server *accepts* a connection, a new stream socket is created for the server to communicate with a client, meanwhile retaining its socket at the server port for listening for *connect* requests from other clients.
+
+**That means that a pair of sockets in the client and server are connected by a pair of streams, one in each direction (an input and output stream)**.
+
+### Failure model
+TCP streams use timeouts and retransmissions to deal with lost packets and to guarantee that messages will be delivered, even when some of the underlying packets are lost.
+
+But if the packet loss over a connection passes some limit, a pair of processes is severed or becomes severely congested, the TCP software might not receive acknowledgements and after a time it will declare the connection to be broken - And then TCP does **not** provide reliable communication.
+
+### When TCP is used
+Well, very often. For instance:
+- *HTTP*: The Hypertext Transfer Protocol is used for communication between web browsers and web servers.
+- *FTP*: The File Transfer Protocol allows directories on a remote computer to be browsed and files to be transferred from one computer to another over a connection.
+- *Telnet*: Provides access by means of a terminal session to a remote computer.
+- *SMTP*: The Simple Mail Transfer Protocol is used to send mail between computers.
+
+## Marshalling
+Marshalling is the process of taking a collection of data items and assembling them into a form suitable for transmission in a message. *Unmarshalling* is the process of disassembling them on arrival to produce an equivalent collection of data items at the destination.
+
+The marshalling consists of the translation of structured data items and primitive values into an external data representation.
+
+Similarly, the unmarshalling consists of the generation of primitive values from their external data representation and the rebuilding of the data structures.
+
+Three approaches to external data representation and marshalling are:
+
+- CORBA's common data representation, which is concerned with an external representation for the structured and primitive types that can be passed as the arguments and results of remote method invocations in CORBA. **Here, primitive data types are marshalled in to a binary form.**
+
+- Java's object serialization, which is concerned with the flattening and external data representation of any single object or tree of objects that may need to be transmitted in a message or stored on a disk. **Here, primitive data types are marshalled in to a binary form.**
+
+- XML (Extensible Markup Language) which defines a textual format for representing structured data. **Here, primitive data types are converted into a textual form.**
+
+## CORBA's Common Data Representation (CDR)
+
+CDR can represent all of the data types that can be used as arguments and return values in remote invocations in CORBA.
+
+There are 15 primitive types which include:
+- `short` (16-bit)
+- `long` (32-bit)
+- `unsigned short`
+- `unsigned long`
+- `float` (32-bit)
+- `double` (64-bit)
+- `char`
+- `boolean`
+- `octet` (8-bit)
+- `any`
+
+There are also a range of composite types:
+
+<table>
+	<caption>CORBA CDR for constructed types</caption>
+	<tr>
+		<td>Type</td>
+		<td>Representation</td>
+	</tr>
+	<tr>
+		<td><code>sequence</code></td>
+		<td>length (unsigned long) followed by elements in order</td>
+	</tr>
+	<tr>
+		<td><code>string</code></td>
+		<td>length (unsigned long) followed by characters in order (can also have wide characters)</td>
+	</tr>
+	<tr>
+		<td><code>array</code></td>
+		<td>Array elements in order (no length specified because it is fixed)</td>
+	</tr>
+	<tr>
+		<td><code>struct</code></td>
+		<td>In the order of declaration of the components</td>
+	</tr>
+	<tr>
+		<td><code>enumerated</code></td>
+		<td>unsigned long (the values are specified by the order declared)</td>
+	</tr>
+	<tr>
+		<td><code>union</code></td>
+		<td>type tag followed by the selected member</td>
+	</tr>
+</table>
+
+#### Marshalling in CORBA
+Marshalling operations can be generated automatically from the specification of the types of data items to be transmitted in a message. A CORBA Interactive Data Language (CORBA IDL) has been built so you could write the following:
+
+```
+struct Person {
+	string name;
+	string place;
+	unsigned long year;
+}
+```
+
+## Java object serialization
+Both objects and primitive data values may be passed as arguments and results of method invocations in Java.
+
+If a class, such as `Person` implements the `Serializable` interface, it allows its instances to be serialized.
+
+In Java, the term *serialization* refers to the activity of flattening an object or a connected set of objects into a serial form that is suitable for storing on disk or transmitting in a message.
+
+*Deserialization* then restores the state of an object or a set of objects from their serialized form. Some information about the class of each object is included in the serialized form to enable the recipient to load the appropriate class when an object is deserialized.
+
+### Handles
+If an object holds references to other objects, all the objects that it references are serialized together with it to ensure that when the object is reconstructed, all of its references can be fulfilled at the destination.
+
+References are serialized as handles. The handle is a reference to an object within the serialized form.
+
+<img src="assets/java_serialization.png" />
+
+### The use of reflection
+Reflection is the ability to enquire about the properties of a class, such as the names and types of its instance variables and methods. It makes it possible to do serialization and deserialization in a completely generic manner. **Thus, there is no need to generate special marshalling functions for each type of object as described for CORBA.**
+
+Java object serialization uses reflection to find out the class name of the object as well as the names, types and values of its instance variables.
+
+When deserializing, the class name in the serialized form is used to create a class. This is used to create a new constructor with argument types corresponding to the ones in the serialized form. It is then invoked to create a new object with instance variables whose values are read from the serialized form. Now, that's magic! (Ugh :-X)
+
+## Extensible Markup Language (XML)
+Is an extensible markup language by W3C. A markup language refers to a textual encoding that represents both text and details as to its structure or its appearance.
+
+XML data items are tagged with 'markup' strings which are used to describe the logical structure of the data and to associate attribute-value pairs with logical structures.
+
+Users can define their own tags, hence the 'extensible' name.
+
+Here's some xml-stuff:
+```xml
+<person id="123456789">
+	<name>Smith</name>
+	<place>London</place>
+	<year>1984</year>
+	<!-- a comment -->
+</person>
+```
+
+The fact that a textual representation rather than a binary one is used makes the messages large, so they do require longer processing and transmission times - as well as more space to store.
+
+#### XML elements and attributes
+- *Elements*: An element consists of a portion of character data surrounded by matching start and end tags.
+- *Attributes*: A start tag may optionally include pairs of associated attribute names and values such as `id="123456789"`.
+- *Names*: The *names* of tags and attributes generally start with a letter, but can also start with an underline or a colon. Letters are case-sensitive (in contrast to HTML where they are **not**).
+
+- *Binary data*: So how do we represent encrypted elements or secure hashes? *base64* notation is used for this, which uses only the alphanumeric characters together with +,/ and =.
+
+- *CDATA*: XML parsers normally parse the contents of elements because they may contain further nested structures. If a section should not be parsed - for example, because it contains special characters - it can be denoted as *CDATA*. For example, if a place name is to include and apostrophe, then it could be specified as:
+```xml
+<place><![CDATA [King's Cross]]></place>
+```
+
+- *XML prolog*: Every XML document *must* have a *prolog* as its first line. The prolog must at least specify the version of XML in use. For example:
+```xml
+<?XML version = "1.0" encoding = "UTF-8" standalone ="yes"?>
+```
+
+- *XML namespaces*: Namespaces provide a means for scoping names. In XML, a namespace is a set of names for a collection of element types and attributes that is referenced by a URL. Any other XML document can use an XML namespace by referring to its URL. To specify a namespace, add a `xmlns` attribute to an element whose value is a URL referring to the file containing the namespace definitions. For example `<person pers:id="123456789" xmlns:pers = "http://blabla.com/person"`></person>`
+
+- *XML schemas*: Defines the elements and attributes that can appear in a document, how the elements are nested and the order and number of elements and whether an element is empty or can include text. The intention is that a single schema definition may be shared by many different documents. Also,, a document may be validated by means of that schema.
+
+Here is an XML schema for the same `Person` structure as in previous examples:
+```xml
+<xsd:schema xmlns:xsd = "www.blabla.com/schemas">
+	<xsd:element name="person" type="personType" />
+	<sd:complexType name="personType">
+		<xsd:sequence>
+			<xsd:element name = "name" type = "xs:string" />
+			<xsd:element name = "place" type = "xs:string" />
+			<xsd:element name = "year" type = "xs:positiveInteger" />
+		</xsd:sequence>
+		<xsd:attribute name = "id" type = "xs:positiveInteger" />
+	</xsd:complexType>
+</xsd:schema>
+```
+
+- *Document type definitions (DTDs)*: For defining the structure of XML documents and are still widely used. A different syntax from the rest of XML. Is quite limited. Cannot describe data types and its definitions are global, preventing element names from being duplicated.
+
+## Remote object references
+Applies not to XML, only to languages that support the distributed object model such as Java and CORBA.
+
+A *remote object reference* is an identifier for a remote object that is valid throughout a distributed system. So, when a client invokes a method in a remote object, an invocation message is sent to the server process that hosts the remote object. This message needs to specify which particular object is to have its method invoked.
+
+Remote object references must be unique over space *and* time.
+
+## Network virtualization: Overlay networks
+Is concerned with the construction of many different virtual networks over an existing network such as the Internet.
+
+Each can be designed to support a particular distributed application.
+
+An application-specific virtual network can be built above an existing network and be optimized for that particular application, without changing the characteristics of the underlying network.
+
+### Overlay networks
+An *overlay network* is a virtual network consisting of nodes and virtual links, which sits on top of an underlying network (such as an IP network). It offers something that is otherwise not provided:
+
+- A service that is tailored towards the needs of a class of application or service, for example multimedia content distribution.
+
+- More efficient operation in a given networked environment, for example routing in an ad hoc network.
+
+- An additional feature, for example multicast or secure communication.
+
+Overlay networks have the following advantages:
+
+- They enable new network services to be defined without requiring changes to the underlying network.
+
+- Encourage experimentation with network services.
+
+- Multiple overlays can be defined and can coexist.
+
+They do introduce a performance penalty as it introduces an extra level of indirection.
+
+**Overlays can be related to the familiar concept of layers. They *are* layers, but layers that exist outside the standard architecture (such as the TCP/IP stack).**
+
+<table>
+	<caption>Types of overlays</caption>
+	<tr>
+		<td><<strong>Motivation</strong>/td>
+		<td><strong>Type</strong></td>
+		<td><strong>Description</strong></td>
+	</tr>
+	<tr>
+		<td><em>Tailored for application needs</em></td>
+		<td>Distributed Hash Tables</td>
+		<td>Offers a service that manages a mapping from keys to values across a potentially large number of nodes in a completely decentralized manner.</td>
+	</tr>
+	<tr>
+		<td><em>Tailored for application needs</em></td>
+		<td>Peer-To-Peer file sharing</td>
+		<td>Focuses on constructing tailored addressing and routing mechanisms to support the cooperative discovery and use of files.</td>
+	</tr>
+	<tr>
+		<td><em>Tailored for application needs</em></td>
+		<td>Content Distribution Networks (CDNs)</td>
+		<td>Subsume a range of replication, caching and placement strategies to provide improved performance in terms of content delivery to web users.</td>
+	</tr>
+	<tr>
+		<td><em>Tailored for network style</em></td>
+		<td>Wireless Ad Hoc Networks</td>
+		<td>Provide customized routing protocols for wireless ad hoc networks, including proactive schemes that effectively construct a routing topology on top of the underlying nodes and reactive schemes that establish routes on demand, typically supported by flooding.</td>
+	</tr>
+	<tr>
+		<td><em>Tailored for network style</em></td>
+		<td>Disruption-tolerant networks</td>
+		<td>Designed to operate in hostile environments that suffer significant node or link failure and potentially high delays.</td>
+	</tr>
+	<tr>
+		<td><em>Offering additional features</em></td>
+		<td>Multicast</td>
+		<td>Providing access to multicast services where multicast routers are not available.</td>
+	</tr>
+	<tr>
+		<td><em>Offering additional features</em></td>
+		<td>Resilience</td>
+		<td>Seek an order of magnitude improvement in robustness and availability of Internet paths</td>
+	</tr>
+	<tr>
+		<td><em>Offering additional features</em></td>
+		<td>Security</td>
+		<td>Offer enhanced security over the underlying IP network, including virtual private networks.</td>
+	</tr>
+</table>
+
+## Processes and threads
+### Process
+Nowadays, a *process* can be associated with multiple activities and consists of an execution environment together with one or more threads.
+
+### Thread
+A *thread* is the operation system abstraction of an activity.
+Can be created and destroyed dynamically as needed.
+
+The aim is to maximize the degree of concurrent execution between operations possible.
+
+### Execution environment
+An *execution environment* is the unit of resource management: a collection of local kernel-managed resources to which its threads have access.
+
+An execution environment primarily consists of:
+- An address space
+- Thread synchronization and communication resources.
+- Higher-level resources such as open files and windows.
+
+They can be shared between multiple threads.

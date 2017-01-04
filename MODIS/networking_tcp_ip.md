@@ -1031,3 +1031,56 @@ An execution environment primarily consists of:
 - Higher-level resources such as open files and windows.
 
 They can be shared between multiple threads.
+
+There are times where literature and people alike say *process* but actually mean *thread*. That's a thing you must be able to navigate through.
+
+### Address spaces
+A unit of management of a process's virtual memory. It is large, somewhere around 2<sup>32</sup> - 2<sup>64</sup> bytes and consists of one or more *regions*, separated by inaccessible areas of virtual memory.
+
+#### Regions
+Regions do not overlap.
+
+Regions has the following properties:
+- Its extent (lowest virtual address and size)
+- read/write/execute permissions for the process's threads.
+- Whether it can be grown upwards or downwards.
+
+#### Shared memory (Shared memory regions)
+The need to share memory between processes or between processes and the kernel is leading to extra regions in the address space.
+
+A *shared memory region* or *shared region* for short is one that is backed by the same physical memory as one or more regions belonging to other address spaces. Processes therefore access identical memory contents in the regions that are shared while their non-shared regions remain protected.
+
+The uses of shared regions include:
+
+- *Libraries*: If every process was to load a large library, it would be a considerable waste of memory. Instead, a single copy of the library code can be shared by being mapped as a region in the address spaces of processes that require it.
+
+- *Kernel*: Often the kernel code and data are mapped into every address space at the same location. When a process makes a system call or an exception occurs, there is no need to switch to a new set of address mappings.
+
+- *Data sharing and communication*: Two processes or a process and the kernel might need to share data in order to cooperate on some task. It can be considerably more efficient for the data to be shared by being mapped as regions in both address spaces than by being passed in messages between them.
+
+### Creation of a new process
+For a distributed system, the design of the process-creation mechanism has to take into account the utilization of multiple computers.
+The creation of a new process can be separated into two independent aspects:
+- The choice of a target host, for instance the host may be chosen among the nodes in a cluster of computers acting as a compute server
+- The creation of an execution environment and an initial thread within it.
+
+#### Choice of process host
+Sometimes, processes are always run at their originator's workstation. Sometimes, the processing load will be evenly distributed between a set of computers. There are two policy categories for load sharing:
+
+- The *transfer policy*: Determines whether to situate a new process locally or remotely. May depend on whether the local node is lightly or heavily loaded.
+- The *location policy*: Determines which node should host a new process selected for transfer. May depend on the relative loads of nodes, on machine architectures or any specialized resources they may possess.
+
+Such policies can either by *static* or *adaptive*.
+
+Load-sharing systems may be centralized, hierarchical or decentralized.
+
+#### Creation of a new execution environment
+A new process requires an execution environment consisting of an address space with initialized contents.
+
+Such a space can be defined and initialized in one of two ways:
+
+1. An address space is created from a list specifying specifying its extent. It is then initialized from an executable file or filled with zeros as appropriate.
+
+2. An address space is defined with respect to an existing execution environment. The newly created child process then physically shares the parent's text region and has heap and stack regions that are copies of the parent's in extent and in initial contents.
+
+### Threads

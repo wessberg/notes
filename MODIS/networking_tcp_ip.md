@@ -1084,3 +1084,29 @@ Such a space can be defined and initialized in one of two ways:
 2. An address space is defined with respect to an existing execution environment. The newly created child process then physically shares the parent's text region and has heap and stack regions that are copies of the parent's in extent and in initial contents.
 
 ### Threads
+
+#### Architectures for multi-threaded servers
+Multi-threading enables servers to maximize their throughput by enabling more concurrent operation. In a machine with a multi-core processor, as many threads as there are cores can process requests in parallel.
+
+- *Worker pool architecture*:
+<img src="assets/client_server_threads.png" />
+
+The server creates a fixed pool of 'worker' threads to process the requests when it starts up. An additional thread then "listens" for requests from a collection of sockets or ports and places them on a shared request queue for retrieval by the workers.
+
+Sometimes, the requests should be handled with varying priorities.
+
+<img src="assets/thread_architectures.png" />
+
+- *Thread-per-request architecture*: A thread receives requests and spawns a new thread for each request. That worker then destroys itself when it has processed the request against its designated remote object. Has the advantage that the threads do not contend for a shared queue, and throughput is potentially maximized because the listening thread can create as many workers as there are outstanding requests. There is, however, the overhead of thread creation an destruction.
+
+- *Thread-per-connection architecture*: Associates a thread with each connection. The server creates a new worker thread when a client makes a connection and destroys the thread when the client closes the connection. In between, the client may make many requests over the connection, targeted at one or more remote objects.
+
+- *Thread-per-object architecture*: Associates a thread with each remote object. A listening thread receives requests and queues them for workers, but this time there is a per-object queue.
+
+The server benefits from lower thread-management overheads with the last two. The disadvantage is the fact that one worker thread may have several outstanding requests while another is simply idle.
+
+### Multiple single-threaded processes vs one multi-threaded process
+- Threads are cheaper to create and manage than processes.
+- Resource sharing can be achieved more efficiently between threads than between processes because threads share an execution environment.
+- Threads within a process are not protected from one another. That is a thing to keep in mind.
+- Two threads in a process can communicate directly and does not require message passing.

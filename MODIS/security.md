@@ -105,31 +105,31 @@ Public-key encryption algorithms usually require from 100 to 1000 times as much 
 <table>
 	<caption>Cryptography notations</caption>
 	<tr>
-		<td>K<sub>A</sub></td>
+		<td><em>K<sub>A</sub></em></td>
 		<td>Alice's secret key</td>
 	</tr>
 	<tr>
-		<td>K<sub>B</sub></td>
+		<td><em>K<sub>B</sub></em></td>
 		<td>Bob's secret key</td>
 	</tr>
 	<tr>
-		<td>K<sub>AB</sub></td>
+		<td><em>K<sub>AB</sub></em></td>
 		<td>Secret key shared between Alice and Bob</td>
 	</tr>
 	<tr>
-		<td>K<sub>Apriv</sub></td>
+		<td><em>K<sub>Apriv</sub></em></td>
 		<td>Alice's private key (known only to Alice)</td>
 	</tr>
 	<tr>
-		<td>K<sub>Apub</sub></td>
+		<td><em>K<sub>Apub</sub></em></td>
 		<td>Alice's public key (published by Alice for anyone to read)</td>
 	</tr>
 	<tr>
-		<td>{M}<sub>K</sub></td>
+		<td><em>{M}<sub>K</sub></em></td>
 		<td>Message M encrypted with key K</td>
 	</tr>
 	<tr>
-		<td>[M]<sub>K</sub></td>
+		<td><em>[M]<sub>K</sub></em></td>
 		<td>Message M signed with key K</td>
 	</tr>
 </table>
@@ -480,3 +480,177 @@ Here's how to do that:
 2. For any document *M* that Alice wishes to sign, Alice concatenates *M* with *K*, computes the digest of the result, *h = H(M + K)* and sends the signed document *[M]<sub>K</sub> = M, h* to anyone wishing to verify the signature. The digest *h* is a MAC. *K* will not be compromised by the disclosure of *h*, since the hash function has totally obscured its value.
 
 3. The receiver, Bob, concatenates the secret key *K* with the received document *M* and computes the digest *h' = H(M + K)*. The signature is verified if *h = h'*.
+
+## Secure digest functions
+There are many ways to produce a fixed-length bit pattern that characterizes an arbitrary-length message or document.
+
+You could simply use the XOR operation iteratively to combine fixed-length pieces of the source document. That would be inadequate as the basis for a digital signature scheme.
+
+A secure digest function *h = H(M)* should have the following properties:
+
+1. Given *M*, it is easy to compute *h*.
+
+2. Given *h*, it is hard to compute *M*.
+
+3. Given *M*, it is hard to find another message *M'*, such that *H(M) = H(M')*.
+
+**Such functions are called *one-way hash functions*.**
+The reason is the two first properties.
+
+The third property demands: Even though we know that the result of a hash function cannot be unique because the digest is an information-reducing transformation, we need to be sure that an attacker, given a message *M* that produces a hash *h* cannot discover another message *M'* that also produces *h*. If an attacker could do this, he could forge a signed document *M'* without knowledge of the signing key by copying the signature from the signed document *M* and appending it to *M'*.
+
+The feasibility of an attacker producing a message *M'* that has the same hash value is incredibly low for modern sizes of hashes (~256-bits), but it could be done using a so-called *birthday attack*.
+
+#### Birthday attack
+
+1. Alice prepares two messages, *M* and *M'* of a contract to Bob. *M* is favorable to Bob and *M'* is not.
+
+2. Alice makes several subtly different versions of both *M* and *M'* that are visually indistinguishable from each other by methods such as adding spaces at the ends of lines or whatever. She compares the hashes of all the <em>M</em>s with all the <em>M'</em>s. If she finds two that are the same, she can proceed to the next step. Otherwise, she keeps on producing visually indistinguishable versions of the two documents until she gets a match.
+
+3. When she has a pair of documents *M* and *M'* (she will eventually, it just might take a century) that hash to the same value, she gives the favorable document *M* to Bob for him to sign with a digital signature using his private key. When he returns it, she substitutes the matching unfavorable version *M'*, retaining the signature from *M*.
+
+Let's see about the probability of this stuff.
+If our hash values are 64 bits long, we require only 2<sup>32</sup> version of *M* and *M'* on average.
+
+**That is not enough**. We need to make our hash values at least 128-bits long (well actually I think 256-bits for modern computers, considering cloud computing) to guard against this type of attack.
+
+### Popular digest functions
+Two widely popular ones at the time the course book was written was the MD5 algorithm and the SHA-1 algorithm.
+
+**The book goes on to call MD5 secure, but it actually isn't secure at all since it is incredibly easy to find collisions.**
+
+#### MD5
+Uses four rounds, each applying one of four nonlinear functions to each of 16 32-bit segments of a 512-bit block of source text. The result is a 128-bit digest. MD5 is one of the most efficient algorithms available (but is strongly discouraged I'd say!).
+
+#### SHA-1
+An algorithm that produces a 160-bit digest. Actually based on MD4, but with some additional operations. Much slower than MD5, but the 160-bit digest does offer greater security against brute-force and birthday-style attacks.
+
+#### Using an encryption algorithm to make a digest
+To use a symmetric encryption algorithm to produce a secure digest, the key should be published so that the digest algorithm can be applied by anyone wishing to verify a digital signature.
+
+## Certificate standards and certificate authorities
+The X.509 is the most widely used standard format for certificates.
+
+- It binds a public key to a named entity called a *subject*.
+- The binding is in the signature which is issued by another named entity called the *issuer*.
+- It has a *period of validity*, which is defined by a pair of dates.
+
+This format is included in the TLS protocol and is widely used in practice to authenticate the public keys of services and their clients.
+
+There are organizations that have established themselves to act as *certificate authorities* such as Verisign, DigiCert and GeoTrust.
+
+Other companies and individuals can obtain X.509 public-key certificates from them by submitting satisfactory evidence of their identity.
+
+There is a two-step verification procedure for any X.509 certificate:
+
+1. Obtain the public-key certificate of the issuer from a reliable source.
+
+2. Validate the signature.
+
+### The Simple Public-Key Infrastructure (SPKI) approach
+SPKI is a scheme for creating and managing a set of public certificates. It enables chains of certificates to be processed using logical inference to produce derived certificates.
+
+For example, if Bob believes that Alice's public key is *K<sub>Apub</sub>* and Carol trusts Bob on Alice's keys, that implies that Carol also believes that Alice's public key is *K<sub>Apub</sub>*
+
+### Nonces (Completely unrelated to the current section by the way)
+A *nonce* is an integer value that is added to a message to demonstrate its freshness. Are used only once and are generated on demand.
+
+## Cryptography pragmatics
+
+### Applications of cryptography and political obstacles
+One thing that we here time and again (lately with Apple and the FBI) is that law-enforcement wants the inclusion of loopholes or trap doors available only to them and other security agencies included in software using encryption. That's because encrypted communication channels can be very useful to criminals.
+
+## Securing electronic transactions with secure sockets
+<img src="assets/tls_protocol_stack.png" />
+
+The Secure Sockets Layer (SSL) protocol was originally developed by the Netscape corporation and proposed as a standard. An extended version of SSL has been adopted as an Internet standard under the name Transport Layer Security (TLS). It is supported by practically all browsers and is widely used.
+
+The main features are:
+
+### Negotiable encryption and authentication algorithms
+In an open network, we should never assume that all parties use the same client software or that all client and server software includes a particular encryption algorithm.
+
+There are even countries attempting to restrict the use of certain encryption algorithms.
+
+TLS has been designed so that the algorithms used for encryption and authentication are negotiated between the processes at the two ends of the connection during the initial *handshake*. **If they do not have sufficient algorithms in common, the connection attempt will fail.**
+
+### Bootstrapped secure communication
+A secure channel is established in a way that doesn't require previous negotiation or help from third parties.
+
+1. Unencrypted communication is used for the initial exchanges.
+2. Then public-key cryptography.
+3. Finally secret-key cryptography, once a shared secret key has been established.
+
+### TLS layers
+TLS consists of two layers:
+- **TLS Record Protocol Layer**: Implements a secure channel, encrypting and authenticating messages transmitted through any connection-oriented protocol (such as TCP).
+- **A handshake layer**: Contains the TLS Handshake Protocol and two other related protocols that establish and maintain a TLS session (that is, a secure channel) between a client and a server.
+
+<img src="assets/tls_handshake_protocol.png" />
+
+Each secure session is given an identifier, and each partner can store session identifiers in a cache for subsequent reuse, avoiding the overhead of establishing a new session when another secure session with the same partner is required.
+
+#### TLS Record Protocol Layer
+Is a session-level layer. Can be used to transport application-level data transparently between a pair of processes while guaranteeing its secrecy, integrity and authenticity.
+
+#### HTTPS
+Needless to say, TLS uses the protocol prefix *https:* in URLs to establish a secure TLS channel between a browser and a web server.
+
+Though, let it be known that it also have secure implementations in Telnet, FTP and many other application protocols.
+
+### TLS vulnerabilities
+Well, the initial TLS handshake is potentially vulnerable to man-in-the-middle attacks. To protect against them, the public key used to verify the first certificate received may be delivered by a separate channel.
+
+### TLS Cipher suite
+TLS supports a variety of cryptographic functions to be used.
+**These are collectively known as a *cypher suite*.**
+
+### TLS Handshake options
+<table>
+	<caption>TLS handshake configuration options</caption>
+	<tr>
+		<td><strong>Component</strong></td>
+		<td><strong>Description</strong></td>
+		<td><strong>Example</strong></td>
+	</tr>
+	<tr>
+		<td>Key exchange method</td>
+		<td>The method to be used for exchange of a session key</td>
+		<td>RSA with public-key certificates</td>
+	</tr>
+	<tr>
+		<td>Cipher for data transfer</td>
+		<td>The block or stream cipher to be used for data</td>
+		<td>IDEA</td>
+	</tr>
+	<tr>
+		<td>Message digest function</td>
+		<td>For creating message authentication codes (MACs)</td>
+		<td>SHA-1</td>
+	</tr>
+</table>
+
+### TLS Handshake process
+
+1. The server offers the client a list of the cipher suite identifiers that it has available.
+
+2. The client responds by selecting one of them or indicating an error if it has none that match.
+
+3. The client and server agree on an optional compression method and a random start value for CBC block encryption functions.
+
+4. The partners optionally authenticate each other by exchanging signed public-key certificates in X.509 format. These can be obtained from a public-key authority or they may simply be generated temporarily for the purpose. In any case, at least one public key must be available for use in the next stage of the handshake.
+
+5. One partner then generates a *pre-master secret* and sends it to the other partner encrypted with the public key. A pre-master secret is a large random value that is used by both partners to generate the two session keys (called *write* keys) for encrypting data in each direction as well as the message authentication secrets to be used for message authentication.
+
+6. A secure session now begins.
+
+### TLS message transmission process
+
+1. A message for transmission is first fragmented into blocks of manageable size and then optionally compressed.
+
+2. The encryption and message authentication (MAC) transformations deploy the algorithms specified in the agreed cipher suite.
+
+3. The signed and encrypted block is transmitted to the partner through the associated TCP connection, where the transformations are reversed to produce the original data block.
+
+### Requirements
+**The only requirement for TLS is that the public-key certificates are issued by an authority recognized by both parties.**

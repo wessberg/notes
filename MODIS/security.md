@@ -442,7 +442,22 @@ The signature can be verified by a principal that subsequently receives the docu
 
 If a secret key is used to encrypt the document, only principals that share the secret can verify the signature. But if public-key cryptography is used, then the signer uses their private key and anyone who has the corresponding public key can verify the signature.
 
-### Digest functions
+### Salts
+We store hashes of passwords. A user's password
+input is hashed and compared with the stored hash when authenticating.
+
+**This works when inverting the hash is computationally
+infeasible. But:
+An adversary might precompute hashes for a large
+collection of typical passwords!**
+
+To avoid this, we pick a random value, a salt, and add it to the password before hashing.
+
+### Hash functions/Digest functions
+
+Function taking arbitrary length data
+(“message”) to fixed-length value (“digest”).
+
 Also called *secure hash functions* and denoted *H(M)*.
 
 **They must be carefully designed to ensure that *H(M)* is different from *H(M')* for all likely pairs of messages *M* and *M'*.**
@@ -654,3 +669,7 @@ TLS supports a variety of cryptographic functions to be used.
 
 ### Requirements
 **The only requirement for TLS is that the public-key certificates are issued by an authority recognized by both parties.**
+
+
+## REMEMBER
+- In digital signatures, you encrypt a hash/digest with your **private** key for asymmetric schemes whereas you would use the **public** key for encrypting **messages**!

@@ -966,7 +966,7 @@ They do introduce a performance penalty as it introduces an extra level of indir
 <table>
 	<caption>Types of overlays</caption>
 	<tr>
-		<td><<strong>Motivation</strong>/td>
+		<td><strong>Motivation</strong></td>
 		<td><strong>Type</strong></td>
 		<td><strong>Description</strong></td>
 	</tr>

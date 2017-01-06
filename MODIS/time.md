@@ -294,7 +294,9 @@ A pair of servers operating in symmetric mode exchange messages bearing timing i
 In all modes, messages are delivered unreliably using UDP.
 
 In procedure-call mode and symmetric mode, processes exchange pairs of messages, each of which bears timestamps of recent message events:
+
 1. The local times when the previous NTP message between the pair was sent and received.
+
 2. The local time when the current message was transmitted.
 
 That amounts to a total of four times, *T<sub>i - 3</sub>, T<sub>i - 2</sub>, T<sub>i - 1</sub>, T<sub>i</sub>*.
@@ -569,7 +571,8 @@ The marker has a dual role:
 - *Marker sending rule*: Obligates processes to send a marker after they have recorded their state, but before they send any other messages.
 
 ### Informal algorithm
-*Marker receiving rule for process p<sub>i</sub>
+```
+Marker receiving rule for process p<sub>i</sub>
 	On receipt of a marker message at p<sub>i</sub> over channel c:
 		if (p<sub>i</sub> has not yet recorded its state) it
 			records its process state now;
@@ -582,7 +585,8 @@ The marker has a dual role:
 
 Marker sending rule for process p<sub>i</sub>
 	After p<sub>i</sub> has recorded its state, for each outgoing channel c:
-		p<sub>i</sub> sends one marker message over c (before it sends any other message over c);*
+		p<sub>i</sub> sends one marker message over c (before it sends any other message over c);
+```
 
 #### Starting the algorithm
 Any process may begin the algorithm at any time. it acts as though it has received a marker over a nonexistent channel and follows the marker receiving rule.

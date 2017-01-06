@@ -1,6 +1,30 @@
 # System models
 > Colouris, chapter 2
 
+### Transparency in distributed
+
+Is the concealment from the user and application programmer of the separation of components in a distributed system, so that the system is perceived as a whole rather than as a collection of independent components.
+
+There are eight forms of relevant transparency:
+
+- *Access transparency*: Enables local and remote resources to be accessed using identical operations.
+
+- *Location transparency*: Enables resources to be accessed without knowledge of their physical or network location (for example, which building or IP address).
+
+- *Concurrency transparency*: Enables several processes to operate concurrently using shared resources without interference between them.
+
+- *Replication transparency*: Enables multiple instances of resources to be used to increase reliability and performance without knowledge of the replicas by users or application programmers.
+
+- *Failure transparency*: Enables the concealment of faults, allowing users and application programs to complete their tasks despite the failure of hardware or software components.
+
+- *Mobility transparency*: Allows the movement of resources and clients within a system without affecting the operation of users or programs.
+
+- *Performance transparency*: Allows the system to be reconfigured to improve performance as loads vary.
+
+- *Scaling transparency*: Allows the system and applications to expand in scale without change to the system structure or the application algorithms.
+
+**The two most important ones are access and location transparency**. Their presence or absence most strongly affects the utilization of distributed resources. **They are sometimes referred to together as network transparency**.
+
 ### Introduction
 The design of distributed systems can be usefully described and discussed through the following kinds of models:
 - **Physical models**: Considers the types of computers and devices that constitute a system and their interconnectivity, without details of specific technologies.

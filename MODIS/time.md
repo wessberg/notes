@@ -1,5 +1,5 @@
 # Time
-> Coulouris Chapter 14 - 14.5. NTP, Totally ordered logical clocks, vector clocks.
+> Coulouris Chapter 14 - 14.5 (inclusive).
 
 Has to do with topics related to the issue of time in distributed systems.
 
@@ -198,9 +198,130 @@ You could add more time servers into the mix to reduce the risk of this problem,
 The problem of dealing with faulty clocks is partially addressed by the Berkeley algorithm.
 
 ## The Berkeley algorithm
+Here, a *coordinator* computer is chosen to act as the *master*. All other computers are called *slaves*.
 
+This one periodically polls the other computers whose clocks are to be synchronized. The slaves send back their clock values to it.
 
+The master then estimates their local clock times by observing the round-trip times, and it then averages the values obtained - including its own clock's reading.
 
+**The balance of probabilities is that this average cancels out the individual clock's tendencies to run fast or slow**.
+
+The accuracy of the protocol depends upon a nominal maximum round-trip time between the master and the slaves.
+
+**The master eliminates any occasional readings associated with larger times than this maximum.**
+
+Instead of sending the updated current time back to the other computers, which would introduce further uncertainty due to the message transmission time, the master instead sends the amount by which each individual slave's clock requires adjustment. This can be a positive or negative value.
+
+#### As an algorithm
+So, periodically, in a pool of processes where *P* is the master and *p<sub>i</sub>* is any of the slaves:
+
+1. *P* requests all processes *p<sub>i</sub>* for their local clocks.
+
+2. All processes *p<sub>i</sub>* sends back their local clock values.
+
+3. Upon receiving the local clocks, *P* estimates the current local clocks of all processes *p<sub>i</sub>* by observing the round-trip times and calculating averages of the values obtained as well as its own clock's reading.
+	-	If a reading is associated with a larger time than a nominal maximum round-trip time, it is eliminated. This is to ensure that faulty clocks cannot have a significant adverse effect on the computed average.
+
+4. The master sends the amount by which each process *p<sub>i</sub>*'s clock requires adjustment. It can be a positive or a negative value.
+
+#### Advantages
+It eliminates readings from faulty clocks. Such clocks could have a significant adverse effect if an ordinary average was taken, so instead the master takes a *fault-tolerant average*, - a subset is chosen of clocks that do not differ from one another by more than a specified amount, and the average is taken of readings from only these clocks.
+
+Should the master fail, then another can be *elected* to take over and function exactly as its predecessor.
+
+## The Network Time Protocol (NTP)
+
+Christian's method and the Berkeley algorithm are intended primarily for use within intranets.
+
+The *Network Time Protocol (NTP)* defines an architecture for a time service and a protocol to distribute time information over the internet.
+
+It aims to:
+
+- *Provide a service enabling clients across the internet to be synchronized accurately to UTC*: Even though large and variable message delays are encountered in internet communication, NTP employs statistical techniques for the filtering of timing data and it discriminates between the quality of timing data from different servers.
+
+- *Provide a reliable service that can survive lengthy losses of connectivity*: There are redundant servers and redundant paths between servers. The servers can reconfigure so as to continue to provide the service if one of them becomes unreachable.
+
+- *Enable clients to resynchronize sufficiently frequently to offset the rates of drift found in most computers*: The service is designed to scale to large numbers of clients and servers.
+
+- *Provide protection against interference with the time service, whether malicious or accidental*: Authentication techniques are used to check that timing data originate from the claimed trusted sources. It also validates the return addresses of messages sent to it.
+
+### Primary and secondary servers
+NTP is provided by a network of servers located across the Internet:
+- *Primary servers*: Connected directly to a time source such as a radio clock receiving UTC.
+- *Secondary servers*: Synchronized, ultimately, with primary servers.
+
+Servers are connected in a logical hierarchy called a *synchronization subnet* whose levels are called *strata*.
+
+#### Primary servers
+Primary servers occupy stratum 1: they are at the root.
+
+#### Secondary servers
+Secondary servers occupy stratum 2 and are directly synchronized with the primary servers.
+
+#### Stratum 3 and up
+And then we have stratum 3 servers which are synchronized with stratum 2 servers and so on. The lowest level (leaf) severs execute in user's workstations.
+
+**The clocks belonging to servers with high stratum numbers are liable to be less accurate than those with low stratum numbers because errors are introduced at each level of synchronization**.
+
+NTP takes into account the total message round-trip delays to the root in assessing the quality of timekeeping data held by a particular server.
+
+The synchronization subnet can reconfigure as servers become unreachable or failures occur. So, if a stratum 1 server's UTC source fails, it can become a stratum 2 server. If a stratum 2 server's normal source of synchronization fails or becomes unreachable, then it may synchronize with another server.
+
+<img src="assets/ntp_subnet.png" />
+
+### Modes of synchronization in NTP servers
+NTP servers can synchronize in one of 3 modes:
+- Multicast
+- Procedure-call
+- Symmetric-mode
+
+#### Multicast mode
+Is intended for use on a high-speed LAN. One or more servers periodically multicasts the time to the servers running in other computers connected by the LAN which then set their clocks assuming a small delay.
+
+This mode can achieve only relatively low accuracies, but ones that are nonetheless considered sufficient for many purposes.
+
+#### Procedure-call mode
+Similar to Christian's algorithm. Here, one server accepts requests from other computers, which it processes by replying with its own current clock reading.
+
+This mode is suitable where higher accuracies are required than what can be achieved with multicast or where multicast is not hardware-supported.
+
+#### Symmetric mode
+Is intended for use by the servers that supply time information in LANs and by the higher levels (lower strata) of the synchronization subnet, **where the highest accuracies are to be achieved**.
+
+A pair of servers operating in symmetric mode exchange messages bearing timing information. Timing data are retained as part of an association between the servers that is maintained in order to improve the accuracy of their synchronization over time.
+
+#### Transportation
+In all modes, messages are delivered unreliably using UDP.
+
+In procedure-call mode and symmetric mode, processes exchange pairs of messages, each of which bears timestamps of recent message events:
+1. The local times when the previous NTP message between the pair was sent and received.
+2. The local time when the current message was transmitted.
+
+That amounts to a total of four times, *T<sub>i - 3</sub>, T<sub>i - 2</sub>, T<sub>i - 1</sub>, T<sub>i</sub>*.
+
+<img src="assets/ntp_synchronization_messages.png" />
+
+#### Offset
+For each pair of messages sent between two servers, the NTP calculates an *offset o<sub>i</sub>*, which is an estimate of the actual offset between the two clocks.
+
+#### Delay
+For each pair of messages sent between two servers, the NTP calculates a *delay d<sub>i</sub>*, which is the total transmission time for the two messages.
+
+Given servers *A* and *B*, if the true offset of the clock at *B* relative to that at *A* is *o*, and if the actual transmission times for *m* and *m'* are *t* and *t'* respectively, then we have:
+
+*T<sub>i - 2</sub> = T<sub>i - 3</sub> + t + o and T<sub>i</sub> = T<sub>i - 1</sub> + t' - 0*.
+
+Which leads to the following computation for the delay *d<sub>i</sub>*:
+
+*d<sub>i</sub> = t + t' = T<sub>i - 2</sub> - T<sub>i - 3</sub> + T<sub>i</sub> - T<sub>i - 1</sub>*
+
+And to compute the offset *o*:
+
+*o = o<sub>i</sub> + (t' - t) / 2* where *o<sub>i</sub> = (T<sub>i - 2</sub> - T<sub>i - 3</sub> + T<sub>i - 1</sub> - T<sub>i</sub>) / 2*
+
+So, *o<sub>i</sub>* is an **estimate** of the offset, and *d<sub>i</sub>* is a measure of the accuracy **of this estimate**.
+
+## Logical time and logical clocks
 
 
 
@@ -352,5 +473,3 @@ Here's the *sending* rule for a process P<sub>i</sub>:
 Pi records its state.
 For each outgoing channel C on which a marker has not been sent, i sends a marker along.
 ```
-
-TODO: Read the chapter in the book!

@@ -319,3 +319,10 @@ The server sends back the request message. Simply for diagnostic purposes.
 
 ### Message contents
 A *Request* message specifies the name of a method (such as "GET"), the URL of a resource (such as "https://domain.com/assets/static-resource.png"), the protocol version ("such as HTTP/1.1"), some headers and an optional message body (if the request method supports it; GET doesn't).
+
+A simple HTTP request could be:
+
+```http
+GET /index.html HTTP/1.1
+Host: www.example.com
+```

@@ -322,154 +322,279 @@ And to compute the offset *o*:
 So, *o<sub>i</sub>* is an **estimate** of the offset, and *d<sub>i</sub>* is a measure of the accuracy **of this estimate**.
 
 ## Logical time and logical clocks
+Obviously, from the point of view of any single process, events are ordered uniquely by times shown on the local clock.
 
+However, since we cannot synchronize clocks perfectly across a distributed system, we cannot in general use physical time to find out the order of any arbitrary pair of events occurring within it.
 
+### Happened-before relation
+We can, however, use a scheme to order *some* of the events that occur at different processes based on two points:
 
+- If two events occurred at the same process *p<sub>i</sub> (i = 1, 2, ..., N)*, then they occurred in the order in which *p<sub>i</sub>* observes them (which is the *➝<sub>i</sub>*) order defined earlier.
 
+- Whenever a message is sent between processes, the event of sending the message occurred before the event of receiving the message.
 
+This partial ordering obtained by generalizing these two relationships are called the *happened-before* relation (also called a *causal ordering* or *potential causal ordering*).
 
+#### Informal definition
+Is denoted: *➝*
 
+Defined as follows:
+- HB1: *if Ǝ process p<sub>i</sub>: e ➝<sub>i</sub> e', then e ➝ e'*.
 
+- HB2: For any message *m*, *send(m) ➝ receive(m)*
+	-	Where *send(m)* is the event of sending the message and *receive(m)* is the event of receiving it.
 
+- HB3: If *e, e'* and *e"* are events such that *e ➝ e'* and *e' ➝ e"*, then *e ➝ e"*.
 
+So, if *e* and *e'* are events, and if *e ➝ e'*, then we can find a series of events *e<sub>1</sub>, e<sub>1</sub>, ..., e<sub>n</sub>* occurring at one or more processes such that *e = e<sub>1</sub>* and *e' = e<sub>n</sub>*, and for *i = 1, 2, ..., N - 1* either HB1 or HB2 applies between *e<sub>i</sub>* and *e<sub>i + 1</sub>*. **That is, either they occur in succession at the same process, or there is a message *m* such that *e<sub>i</sub> = send(m)* and *e<sub>i + 1</sub> = receive(m)*.**
 
+<img src="assets/events_three_processes.png" />
 
+From the image it can be seen that *a ➝ b* since the events occur in this order at process *p<sub>1</sub>* (*a ➝<sub>i</sub> b*).
 
+We can also see that  *c ➝ d* of the same reason.
 
+What is more interesting is that we can see that *b ➝ c* since these events are the sending and reception of message *m<sub>1</sub>*.
 
+We can do the same thing with *d ➝ f*.
 
+**Combining these relations, we may also say that, for example, *a ➝ f*.**
 
+#### Events that are unrelated
+As seen from the image, we can see that *a ↛ e* and *e ↛ a* (*a* doesn't necessarily come before *e* and *e* doesn't necessarily come before *a*) since they occur at different processes and there is no chain of messages intervening between them.
 
-# Lecture notes:
+**We say that events such as *a* and *e* that are not ordered by ➝ are *concurrent* and write it as *a || e*.**
 
-### Events
+### Logical clocks
+A simple mechanism for capturing the happened-before relation numerically is called a *logical clock*.
 
-- An *event* `e` happens at a process and has an action.
+A logical clock is a monotonically increasing software counter whose value need bear no particular relationship to any physical clock.
 
-- Write `e -->i e'` if `e`, `e'` happens at `i`, `e` before `e'`
+Each process *p<sub>i</sub>* keeps its own logical clock *L<sub>i</sub>* which it uses to apply so-called *Lamport timestamps* to events.
 
-- Events at process `i` form a total order.
+We denote the timestamp of event *e* at *p<sub>i</sub>* by *L<sub>i</sub>(e)* and we denote the timestamp of event *e* at whatever process it occurred at as *L(e)*.
 
-### Synchronization
+Processes update their local clocks and transmit the values of their logical clocks in a message as follows:
 
-How do we synchronize clocks?
+- LC1: *L<sub>i</sub>* is incremented before each event is issued at process *p<sub>i</sub>*: *L<sub>i</sub> := L<sub>i</sub> + 1*.
 
-- External, bound `D>0`: Given a UTC source `S`, for any `1 <= i <= N`:<br>
-*| S(t)-C<sub>i</sub>(t) | < D* <br><br> Accurate within bound `D`.
+- LC2:
+	- (a) When a process *p<sub>i</sub>* sends a message *m*, it piggybacks on *m* the value *t = L<sub>i</sub>*.
+	- (b) On receiving *(m, t)*, a process *p<sub>j</sub>* computes *L<sub>j</sub> := max(L<sub>j</sub>, t)* and then applies LC1 before timestamping the event *receive(m)*.
 
-- Internal bound `D>0`: For any `1<=i, j<= N`:<br>*| C<sub>i</sub>(t) - C<sub>j</sub>(t) | < D* <br><br>
-In agreement within bound D
+So here is the image from before, except with Lamport timestamps:
 
-### Synchronizing in a *synchronous* distributed system.
+<img src="assets/lamport_timestamps.png" />
 
-About bounds on clock drift, execution steps, message delivery.
-Again, remember that we define explicit minimum and maximum bounds on execution time in synchronous distributed systems.
+### Totally ordered logical clocks
+Some pairs of distinct events, generated by different processes, have numerically identical Lamport timestamps. For example, in the image above, *a* and *e* both have the timestamp 1.
 
-Say we want to synchronize two processes P<sub>1</sub>, P<sub>2</sub>
+However, we can create a **total order** on a set of events which means one for which all pairs of distinct events are ordered by taking into account the identifiers of the processes at which events occur.
 
-- *P<sub>1</sub>* sends local time t in message to *P<sub>2</sub>*
-- *P<sub>2</sub>* sets time to `u = t + (max - min) / 2 + min`
-- Skew bounded by `(max - min) / 2`
+If *e* is an event occurring at *p<sub>i</sub>* with local timestamp *T<sub>i</sub>* and *e'* is an event occurring at *p<sub>j</sub>* with local timestamp *T<sub>j</sub>*, we define the global logical timestamps for these events to be *(T<sub>i</sub>, i)* and *(T<sub>j</sub>, j)* respectively.
 
-### Synchronizing in a *asynchronous* distributed system
+And we define *(T<sub>i</sub>, i) < (T<sub>j</sub>, j)* if and only if either *T<sub>i</sub> < T<sub>j</sub>* or *T<sub>i = T<sub>j</sub>* and *i < j*.
 
-Here, we have no lower or upper bound on *max* and *min*. How do we synchronize time then?
+This has no general physical significance, but it *is* sometimes useful, for instance, when ordering the entry of processes to a critical section.
 
-We used whats' called *Christian's method*.
-The point is that we calculate the latency from the initial transmission and add it to the overall clock drift.
+### Vector clocks
+With Lamport clocks, even though *L(e) > L(e')*, we cannot conclude that *e ➝ e'*. A *vector clock* is designed to overcome this shortcoming.
 
-- Estimate round-trip time: *T<sub>round</sub>*.
+A vector clock for a system of *N* processes is an array of *N* integers.
 
-- *u = t + T<sub>round</sub> / 2*
+Each process keeps its own vector clock, *V<sub>i</sub>*, which it uses to timestamp local events. Just like Lamport timestamps, processes piggyback vector timestamps on the messages they send to one another, and there are simple rules for updating the clocks:
 
-- Accuracy estimate with known/estimated minimum transmission time (e.g. latency).
+- VC1: Initially, *V<sub>i</sub>[j] = 0* for *i, j = 1, 2 ..., N*
 
-- *±(T<sub>round</sub> / 2 - min)*
+- VC2: Just before *p<sub>i</sub>* timestamps an event, it sets *V<sub>i</sub>[i] := V<sub>i</sub>[i] + 1*.
 
-## Logical time
+- VC3: *p<sub>i</sub>* includes the value *t = V<sub>i</sub>* in every message it sends.
 
-Logical time is about the order in which things happened.
+- VC4: When *p<sub>i</sub>* receives a timestamp *t* in a message, it sets *V<sub>i</sub>[j] := max(V<sub>i</sub>[j], t[j])*, for *j = 1, 2 ..., N*.
+	-	Taking the component-wise maximum of two vector timestamps in this way is known as a *merge* operation.
 
-They key tool is the **Happened-Before** relation.
+For a vector clock *V<sub>i</sub>*, *V<sub>i</sub>[i]* is the number of events that *p<sub>i</sub>* has timestamped and *V<sub>i</sub>[j] (j ≠ i)* is the number of events that have occurred at *p<sub>j</sub>* that have potentially affected *p<sub>i</sub>*.
 
-### Happened-Before
+Here the image is again, except with vector timestamps instead:
+<img src="assets/vector_timestamps.png" />
 
-Three properties:
+#### Disadvantages
+Compared with Lamport timestamps, Vector timestamps have the disadvantage that they take up an amount of storage and message payload that is proportional to *N*, the number of processes.
 
-- If *e --><sub>i</sub>*, then *e --> e'*.
+## Global states
 
-- `send(m) --> receive(m)`
+### Distributed garbage collection
+An object is considered to be garbage if there are no longer any references to it anywhere in the distributed system.
 
-- The transitive closure: e.g. `if e -->e' and e' --> e" then e --> e"`.
+The memory taken up by that object can then be reclaimed once it is known to be garbage. So, to check that it is garbage, we must verify that there are no references to it anywhere in the system.
 
-Events that cannot be related are called **concurrent**. Processes on different threads produce events. These are concurrent in the sense that they have no relation to each other.
+Imagine a process *p<sub>1</sub>* that has two objects that both have references:
+- One has a reference within *p<sub>1</sub>* itself.
+- *p<sub>2</sub>* has the other reference.
 
-### Logical clocks (Lamport)
-Here we add a logical clock L<sub>i</sub> to each process.
+Imagine also that *p<sub>2</sub>* has an object that are referenced neither by *p<sub>1</sub>* or *p<sub>1</sub>* **but**, a reference to it is on its way in a message that is in transit between the processes.
 
-- *L<sub>i</sub> := L<sub>i</sub> + 1 just* before each event at *p<sub>i</sub>*
+**We must include the state of communication channels as well as the state of the processes when designing distributed garbage collection!**
 
-- `send(m)` at P<sub>i</sub> piggy-backs *t = L<sub>i</sub>* in *m*.
+### Distributed deadlock detection
+Happens when each of a collection of processes waits for another process to send it a message, and where there is a cycle in the graph of this *waits-for* relationship. Imagine if *p<sub>1</sub>* waits for *p<sub>2</sub>*, but *p<sub>2</sub>* also waits for *p<sub>1</sub>*. That's a cycle - the system will never make process and is in a deadlock.
 
-- *L<sub>i</sub> := max(L<sub>i</sub>, t) just* after `receive(m)` at *P<sub>i</sub>* before doing step 1
+<img src="assets/waits_for_graph_cycle.png" />
 
-## Global state
+### Distributed termination detection
+How do we detect that a distributed algorithm has terminated?
 
-The history of a process is the set of events that happened in that process.
+### Distributed debugging
+Pretty complex stuff to do.
 
-e.g. *h<sub>i</sub> = e<sub>0</sub>, e<sub>1</sub>...*
+### What do these problems have in common?
+They all illustrate the need to observe a global state, and so motivate a general approach.
 
-The **global history** is all histories of individual processes.
+### Global states and consistent cuts
+Its (super) hard to ascertain a global state of a system - the state of the collection of processes.
 
-A **prefix** of a history is a subset of the set of events.
+**The essential problem is the absence of global time**. If all processes had perfectly synchronized clocks, then we could agree on a time at which each process would record its state. That would be actual global state of the system.
 
-A **state** is an object state from the point of a specific event on a specific process.
+We could use that one to figure out whether or not the processes were deadlocked, for instance.
 
-A **global state** is thus the state of every process on a specific point in time.
+**But we cannot achieve perfect clock synchronization!**
 
-<u>Properties of a global state are:</u>
+But can we instead assemble a meaningful global state from local states recorded at different times? Yeah!
 
-- Consistent. Defined by a consistent cut.
+Remember,
+**Each event either is an internal action of the process (for instance, updating one of its variables) or is the sending or receipt of a message over the communication channels that connect the processes**.
 
-- Some ordering of all events that respects local causality *--><sub>i</sub>*
+#### Global history
+The *global* history of a distributed system is the union of the individual process histories.
 
-- Consistent run (Also called *linearization*): Run that respects *Happened-Before*.
+Remember, the history of a single process *p<sub>i</sub>* is:
+*history(p<sub>i</sub>) = h<sub>i</sub> = <e<sup>0</sup><sub>i</sub>,e<sup>1</sup><sub>i</sub>,e<sup>0</sup><sub>2</sub>, ...>*.
 
-### Cut
+So the history of the entire system is:
 
-A choice of *prefix* for each individual process.
+*H = h<sub>0</sub> 𖼓 h<sub>1</sub> 𖼓 ... 𖼓 h<sub>N - 1</sub>*
 
-### Consistent/inconsistent cut
+### Global state
+Notation: *S*.
+For multiple global states we may characterize the execution of a distributed system as a series of transitions between global states of the system:
 
-A consistent cut is one that has a corresponding `send` event for each `receive` event.
+*S<sub>0</sub> ➝ S<sub>1</sub> ➝ S<sub>2</sub> ➝ ...*
 
-An inconsistent cut is not a reasonable global state.
+### Cuts
+<img src="assets/cuts.png" />
+A *cut* of the system's execution is a subset of its global history that is a union of prefixes of process histories:
 
-### Snapshot (Chandy & Lamport)
+*C = h<sup>c<sub>1</sub></sup><sub>1</sub> 𖼓 h<sup>c<sub>2</sub></sup><sub>2</sub> 𖼓 ... 𖼓  h<sup>c<sub>N</sub></sup><sub>N</sub>*
 
-- The graph of processes and channels is strongly connected; There is a path between any two processes.
+where *c* are the cuts of the individual process's histories.
+
+#### Inconsistent cuts
+If a cut includes the receiving event of a message but does not include the sending event, we have an *inconsistent cut*, just like seen in the image where we take *e<sup>0</sup><sub>2</sub>* but doesn't take *e<sup>1</sup><sub>1</sub>*. That doesn't work!
+
+**It shows an effect without a cause, and that's not good**.
+
+#### Consistent cut
+Here, we *can* include the sending event in our cut but not the receiving event. That is still a *consistent cut*.
+A cut *C* is consistent if, for each event it contains, it also contains all the events that *happened-before* that event:
+
+*For all events e ∈ C, f ➝ e ⇒ f ∈ C*
+
+#### Consistent global state
+A consistent global state is one that corresponds to a consistent cut.
+
+### Run
+A *run* is a total ordering of all the events in a global history that is consistent with each local history's ordering.
+
+#### Linearization or consistent run
+Is an ordering of the events in a global history that is consistent with this happened-before relation *➝* on *H*. A linearization is the same thing.
+
+## Global state predicates, stability, safety and liveness
+
+### Uses of global states
+Detecting a condition such as deadlock or termination requires evaluating a global state predicate.
+
+### Global state predicates
+A function that maps from the set of global states of processes in the system to *{True, False}*.
+
+One of the useful characteristics of the predicates associated with the state of an object being garbage, of the system being deadlocked or the system being terminated is that they are all *stable*: Once the system enters a state in which the predicate is *True*, it remains *True* in all future states reachable from that state.
+
+### Safety & liveness
+*Safety* with respect to a property *a*, such as being deadlocked, is the assertion that *a* evaluates to *False* for all states *S* reachable from *S<sub>0</sub>*.
+
+### Liveness
+Liveness with respect to a property *b* such as reaching termination, is the property that, for any linearization *L* starting in the state *S<sub>0</sub>*, *b* evaluates to *True* for some state *S<sub>L</sub>* reachable from *S<sub>0</sub>*.
+
+## The snapshot algorithm
+The 'snapshot' algorithm determines global states of distributed systems.
+
+The goal is to record a set of process and channel states (a 'snapshot') for a set of process *p<sub>i</sub>* (i = 1, 2, ..., N) such that, even though the combination of recorded states may never have occurred at the same time, the recorded global state is consistent.
+
+It records state locally at processes. It does not give a method for gathering the global state at one site.
+
+The algorithm assumes that:
+
+- Neither channels nor processes fail. Communication is reliable so that every message sent is eventually received, intact, exactly once.
+
+- Channels are unidirectional and provide FIFO-ordered message delivery.
+
+- The graph of processes and channels is strongly connected: There is a path between any two processes.
 
 - Any process may initiate a global snapshot at any time.
 
 - The processes may continue their execution and send and receive normal messages while the snapshot takes place.
 
-- And more ... (already covered by the above model).
+### The algorithm
 
-Here's the *receiving* rule for a process P<sub>i</sub>:
+For each process *p<sub>i</sub>*, let the *incoming channels* be those at *p<sub>i</sub>* over which other processes sends it messages. Let the *outgoing channels* of *p<sub>i</sub>* be those on which it sends messages to other processes.
 
-```
-if (Pi has not yet recorded its state) it
-	records its process state now;
-	records the state of c as the empty set;
-	turns on recording of messages arriving over other incoming channels.
-else
-	Pi records the state of c as the set of messages it has received over c since it saved its state.
-end if
-```
+Each process records its state and also, for each incoming channel, a set of messages sent to it.
 
-Here's the *sending* rule for a process P<sub>i</sub>:
+The process records, for each channel, any messages that arrived after it recorded its state and before the sender recorded its own state.
 
-```
-Pi records its state.
-For each outgoing channel C on which a marker has not been sent, i sends a marker along.
-```
+This allows us to record the states of processes at different times but to account for the differentials between process states in terms of messages transmitted but not yet received.
+
+### Marker messages
+The algorithm proceeds through the use of *marker* messages which processes may send and receive while they proceed with their normal execution.
+
+The marker has a dual role:
+
+- It is a prompt for the receiver to save its own state, if it has not already done so.
+
+- It is a means of determining which messages to include in the channel state.
+
+#### Marker rules
+
+- *Marker receiving rule*: Obligates a process that has not recorded its state to do so. In that case, this is the first marker that it has received. It notes which messages subsequently arrive on the other incoming channels. When a process that has already saved its state receives a marker on another channel, it records the state of that channel as the set of messages it has received on it since it saved its state.
+
+- *Marker sending rule*: Obligates processes to send a marker after they have recorded their state, but before they send any other messages.
+
+### Informal algorithm
+*Marker receiving rule for process p<sub>i</sub>
+	On receipt of a marker message at p<sub>i</sub> over channel c:
+		if (p<sub>i</sub> has not yet recorded its state) it
+			records its process state now;
+			records the state of c as the empty set;
+			turns on recording of messages arriving over other incoming channels;
+
+		else
+			p<sub>i</sub> records the state of c as the set of messages it has received over c since it saved its state;
+		end if
+
+Marker sending rule for process p<sub>i</sub>
+	After p<sub>i</sub> has recorded its state, for each outgoing channel c:
+		p<sub>i</sub> sends one marker message over c (before it sends any other message over c);*
+
+#### Starting the algorithm
+Any process may begin the algorithm at any time. it acts as though it has received a marker over a nonexistent channel and follows the marker receiving rule.
+
+Several processes may initiate recording concurrently in this way.
+
+#### Characterizing the observed state
+The snapshot algorithm achieves consistent cut.
+
+#### Pre-snap and post-snap events
+A *pre-snap* event at at a process *p<sub>i</sub>* is one that occurred at *p<sub>i</sub>* before it recorded its state.
+
+All other kinds of events are *post-snap* events.
+
+Obviously, a *post-snap* event can occur before a *pre-snap* event if the events occur at different processes.

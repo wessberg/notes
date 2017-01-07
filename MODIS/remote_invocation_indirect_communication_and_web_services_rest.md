@@ -318,11 +318,235 @@ As far as I know, there really isn't anyone that takes this method into account 
 The server sends back the request message. Simply for diagnostic purposes.
 
 ### Message contents
-A *Request* message specifies the name of a method (such as "GET"), the URL of a resource (such as "https://domain.com/assets/static-resource.png"), the protocol version ("such as HTTP/1.1"), some headers and an optional message body (if the request method supports it; GET doesn't).
+#### Request
+A *Request* message specifies the name of a method (such as "GET"), the URL of a resource (such as "https://domain.com/assets/static-resource.png"), the protocol version (such as "HTTP/1.1"), some headers and an optional message body (if the request method supports it; GET doesn't).
 
-A simple HTTP request could be:
+A simple HTTP *Request* could be:
 
 ```http
 GET /index.html HTTP/1.1
 Host: www.example.com
 ```
+
+The header fields could contain lots of things, for instance the latest date of modification of the resource or acceptable content types. An authorization field could also be used to provide the client's credentials in the form of a certificate specifying their rights to access a resource.
+
+#### Reply
+A *Reply* message specifies the protocol version (such as "HTTP/1.1"), a status code (such as 200 ("OK")), a 'reason' (for instance, if the status code reflects an error), some headers and an optional message body.
+
+## RPC (Remote Procedure Call)
+The whole point is to make the programming of distributed systems look similar if not identical to conventional programming. That is, achieving a high level of distribution transparency.
+
+In RPC, procedures on remote machines can be called as if they are procedures in the local address space. It is the underlying RPC system that hides the important aspects of distribution, including the encoding and decoding of parameters and results, the passing of messages and the preserving of the required semantics for the procedure call.
+
+### Programming with interfaces
+In order to control the possible interactions between modules, an explicit *interface* is defined for each module.
+
+The interface specifies the procedures and variables that can be accessed from other modules.
+
+Modules are implemented so as to hide all the information about them except that which is available through its interface. So long as its interface remains the same, the implementation may be changed without affecting the users of the module.
+
+In a distributed program, the modules can run in separate processes.
+In the client-server model in particular, each server provides a set of procedures that are available for use by clients.
+
+For example, a file server would provide procedures for reading and writing files.
+The term *service interface* is used to refer to the specification of the procedures offered by a server, defining the types of the arguments of each of the procedures.
+
+### Benefits with interfaces in distributed systems
+- As with any form of modular programming, programmers are concerned only with the abstraction offered by the service interface and need not be aware of implementation details.
+
+- Extrapolating to distributed systems, programmers also do not need to know the programming language or underlying platform used to implement the service.
+
+- This approach provides natural support for software evolution in that implementations can change as long as the interface remains the same.
+
+### Constraints
+- It is not possible for a client module running in one process to access the variables in a module in another process.
+
+- Passing references as parameter-arguments are not suitable when the caller and procedure are in different processes. Rather, input parameters are passed to the remote server by sending the *values* of the arguments in the request message and then supplying them as arguments to the operation to be executed in the server.
+
+- Addresses in one process are not valid in another remote one. Thus, addresses cannot be passed as arguments or returned as results of calls to remote modules.
+
+### interface Definition Languages (IDLs)
+An RPC mechanism can be integrated with a particular programming language if it includes an adequate notation for defining interfaces, allowing input and output parameters to be mapped onto the language's normal use of parameters.
+
+This is useful when all the parts of a distributed application can be written in the same language.
+
+*However*, many services are written in other languages. It would be beneficial to allow programs written in a variety of languages to access them remotely.
+
+*Interface Definition Languages (IDLs)* are designed to allow procedures implemented in different languages to invoke one another.
+
+An IDL provides a notation for defining interfaces in which each of the parameters of an operation may be described as for input or output in addition to having its type specified.
+
+CORBA was quite popular for defining the CORBA IDL.
+
+### RPC call semantics
+There are different choices to make regarding the required delivery guarantees:
+
+- *Retry request message*: Controls whether to retransmit the request message until either a reply is received or the server is assumed to have failed.
+
+- *Duplicate filtering*: Controls when retransmissions are used and whether to filter out duplicate requests at the server.
+
+- *Retransmission of results*: Controls whether to keep a history of result messages to enable lost results to be retransmitted without re-executing the operations at the server.
+
+Combinations of these choices lead to a variety of possible semantics for the reliability of remote invocations as seen by the invoker.
+
+These semantics are:
+
+- **Maybe semantics**: With *maybe* semantics, the RPC may be executed once or not at all. If the result message has not been received after a timeout and there are no retries, it is uncertain whether the procedure has been executed. *Maybe* semantics is useful only for applications in which occasional failed calls are acceptable.
+
+- **At-least-once semantics**: The invoker receives either a result, in which case the invoker knows that the procedure was executed at least once, or an exception informing it that no result was received. *At-least-once* semantics can be achieved by the retransmission of request messages. If the operations in a server can be designed so that all of the procedures in their service interfaces are idempotent operations, then *at-least-once* semantics may be acceptable.
+
+- **At-most-once-semantics**: Here, the caller receives either a result, in which case the caller knows that the procedure was executed once, or an exception informing it that no result was received, in which case the procedure will have been executed either once or not at all. A pretty good all-around choice I'd say.
+
+### Transparency
+Even though RPC aims to make remote procedure calls as much like local ones with no distinction in syntax whatsoever, it doesn't change the fact that that remote procedure calls are more vulnerable than local ones, since they involve a network, another computer and another process and all the potential issues that may contain, including the significant latency.
+
+But it does give location and access transparency!
+
+## Implementation of RPC
+RPC is generally implemented over a request-reply protocol like the ones mentioned.
+
+The client that accesses a service includes one *stub procedure* for each procedure in the service interface.
+
+### Stub procedure
+It behaves like a local procedure to the client, but instead of executing the call, it marshals the procedure identifier and the arguments into a request message, which it sends via its communication module to the server.
+
+When the reply message arrives, it unmarshals the results.
+
+The server process contains a dispatcher together with one server stub procedure and one service procedure for each procedure in the service interface.
+The dispatcher selects one of the server stub procedures according to the procedure identifier in the request message.
+
+The server stub procedure then unmarshals the arguments in the request message, calls the corresponding service procedure and marshals the return values for the reply message.
+
+<img src="assets/stub_procedures.png" />
+
+### Compilation
+The client and server stub procedures and the dispatcher can be generated automatically by an interface compiler from the interface definition of the service.
+
+## Indirect communication
+
+The essence is to communicate through an intermediary and hence have no direct coupling between the sender and the one or more receivers.
+
+Indirection is a fundamental concept in computer science. In terms of distributed systems, the concept of indirection is increasingly applied to communication paradigms.
+
+With indirect communication, you achieve:
+
+- *Space uncoupling*: The sender does not know or need to know the identity of the receiver(s), and vice versa. Because of this space uncoupling, the system developer has many degrees of freedom in dealing with change: participants can be replaced, updated, replicated or migrated.
+
+- *Time uncoupling*: The sender and receiver(s) can have independent lifetimes. They do not need to exist at the same time to communicate. This has important benefits.
+
+**Indirect communication is often used in distributed systems where change is anticipated.**
+
+It is also heavily used for events dissemination in distributed systems where the receivers may be unknown and liable to change.
+
+<table>
+	<caption>Space and time coupling in distributed systems</caption>
+	<tr>
+		<td></td>
+		<td><strong>Time-coupled</strong></td>
+		<td><strong>Time-uncoupled</strong></td>
+	</tr>
+	<tr>
+		<td><em>Space coupling</em></td>
+		<td>Communication directed towards a given receiver or receivers. Receiver(s) must exist at that moment in time. Examples of this are Message passing and remote invocation.</td>
+		<td>Communication directed towards a given receiver or receivers. Sender(s) and receiver(s) can have independent lifetimes.</td>
+	</tr>
+	<tr>
+		<td><em>Space uncoupling</em></td>
+		<td>Sender does not need to know the identity of the receiver(s). Receiver8s) must exist at that moment in time. An example of this is IP multicast (messages are directed towards the multicast group, not any particular receiver(s)).</td>
+		<td>Sender does not need to know the identity of the receiver(s). Sender(s) and receiver(s) can have independent lifetimes. Most indirect communication paradigms are based on this.</td>
+	</tr>
+</table>
+
+## Publish-subscribe systems
+Sometimes also referred to as *distributed event-based systems*
+
+This is one of the most used indirect communication techniques.
+
+A Publish-subscribe system is one where *publishers* publish structured events to an event service and *subscribers* express interest in particular events through *subscriptions* which can be arbitrary patterns over the structured events.
+
+The task of the Publish-subscribe system is to match subscriptions against published events and ensure the correct delivery of *event notifications*.
+
+Obviously, since a given event will be delivered to potentially many subscribers, publish-subscribe is fundamentally a one-to-many communications paradigm.
+
+### Characteristics of publish-subscribe systems
+There are two main characteristics:
+
+- *Heterogeneity*: When event notifications are used as a means of communication, components in a distributed system that were not designed to interoperate can be made to work together. All that is required is for the event-generating objects to publish the types of events they offer.
+
+- *Asynchronicity*: Notifications are sent asynchronously by event-generating publishers to all the subscribers that have expressed an interest in them to prevent publishers needing to synchronize with subscribers.
+
+### Reliability for publish-subscribe
+When it comes to delivery guarantees, that depends on the application requirements. For instance, if IP multicast is used to send notifications to a group of receivers, the failure model will relate to the one described for IP multicast and thus will not guarantee that any particular recipient will receive a particular notification message.
+
+### The programming model for Publish-Subscribe systems
+Is based on a small set of operations:
+
+- Publishers disseminate an event *e* through a `publish(e)` operation.
+- Subscribers express an interest in a set of events through subscriptions with a `subscribe(f)` operation where `f` refers to a filter - that is, a pattern defined over the set of all possible events.
+- Subscribers can later revoke this interest through a corresponding `unsubscribe(f)` operation.
+- When events arrive at a subscriber, the events are delivered using a `notify(e)` operation.
+
+<img src="assets/publish_subscribe.png" />
+
+### Expressiveness
+Expressiveness is determined by the subscription (filter) model, with a number of schemes defined:
+
+- *Channel-based*: Publishers publish events to named channels and subscribers then subscribe to one of these named channels to receive all events sent to that channel.
+
+- *Topic-/Subject-based*: Each notification is expressed in terms of a number of fields, with one field denoting the topic. Subscriptions are then defined in terms of the topic of interest. For instance, a subscription could be defined in terms of *cats* or *cats/funny* where the directory structure way of defining the topic or subject makes the latter even more specific.
+
+- *Content-based*: A generalization of topic-based approaches allowing the expression of subscriptions over a range of fields in an event notification. So, it is a query defined in terms of compositions of constraints over the values of event attributes. An example could be a subscription on the topic *cats* whose  *age* is greater than 8. That's pretty expressive, but definitely comes with some implementation challenges.
+
+- *Type-based*: Linked to object-oriented approaches. Here, subscriptions are defined in terms of *types* of events and matching is defined in terms of types or subtypes of the given filter. These can be integrated elegantly into programming languages and they can check the type correctness of subscriptions.
+
+### Publish-subscribe implementation issues
+#### Centralized versus distributed implementations
+##### Centralized
+The simplest way to implement at publish-subscribe system is to centralize the implementation in a single node with a server on that node acting as an event broker. Publishers then publish events to this broker, and subscribers send subscriptions to the broker and receive notifications in return.
+
+But like in all other centralized indirect communication systems, it lacks resilience and scalability, since the centralized broker represents a single point for potential system failure and a performance bottleneck.
+
+##### Decentralized
+Here, the centralized broker is replaced by a *network of brokers* that cooperate to offer the desired functionality. Can survive node failure.
+
+You could also have a fully *peer-to-peer* implementation of a publish-subscribe system which would be the ultimate solution. Here, all nodes act as brokers, cooperatively implementing the required event routing functionality.
+
+## (Distributed) Message queues
+Whereas publish-subscribe provide a one-to-many style of communication, message queues provide a *point-to-point* service using the concept of a message queue as an indirection, thus achieving the desired properties of space and time uncoupling.
+
+They are point-to-point in that the sender places the message into a queue, and it is then removed by a single process.
+### The programming model of Distributed Message Queues
+It is actually very simple.
+
+Producer processes can *send* messages to a specific queue and consumer processes can then *receive* messages from this queue.
+
+That's it!
+
+### *Receive* styles
+There are three:
+- A *blocking receive*: Blocks until an appropriate message is available.
+- A *non-blocking receive*: Checks the status of the queue and returns a message if available, or a not available indication otherwise. Is a polling operation.
+- A *notify* operation, which will issue an event notification when a message is available in the associated queue.
+
+### Ordering
+It is normally FIFO-ordered (*first-in-first-out*), but many message queues also support the concept of priority, with higher-priority messages delivered first.
+
+A message consists of a *destination*, *metadata* including the priority and delivery mode, as well as a *body*.
+
+<img src="assets/message_queue.png" />
+
+### Persistence
+**Messages are persistent - they will be stored indefinitely until they are consumed**.
+
+### Reliability
+Message queues ensures that any message sent is eventually delivered (validity) and the message received is identical to the one sent, and no messages are delivered twice (integrity). This makes message queues reliable.
+
+### Implementation issues
+Again, the key issue is choosing between a centralized and distributed implementation. As always, the centralized version suffers from no scalability as well as a single point of failure where the distributed once is adds a lot to the complexity of the implementation.
+
+## SOAP
+The SOAP specification states:
+- How XML is to be used to represent the contents of individual messages.
+- How a pair of single messages can be combined to produce a request-reply pattern.
+- The rules as to how the recipients of messages should process the XML elements that they contain.
+- How HTTP and SMTP should be used to communicate SOAP messages.

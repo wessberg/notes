@@ -1073,3 +1073,32 @@ Nice!
 If an object only have `readonly` members, it is an immutable type. The content can *only* be set on initialization time.
 
 ## Anonymous types
+Maybe the most extreme case of Microsoft-Magic, but definitely helpful in some cases.
+
+This is *actually* legal:
+```csharp
+var magic = new { Microsoft = "Loves magic", Why = "Because why not" };
+```
+
+When you combine the `var` keyword with the `new` keyword, you can create anonymous types. It is simply a nameless class that inherits from object but where the fields and types of them are inferred from the initializer.
+
+So the above then becomes a class with members:
+```csharp
+string Microsoft = "Loves Magic";
+string Why = "Because why not";
+```
+
+But it gets even more crazy.
+If you then move on and declare another object later in your code:
+```csharp
+var moreMagic = new { Microsoft = "Loves syntactic sugar", Why = "Developers, developers, developers" };
+```
+
+...Then the types of the variables `magic` and `moreMagic` would be the same!!!!
+
+But, we're not done yet. You can even leave out the field names if it can be inferred from a passed reference:
+```csharp
+var pureMagic = new { Companies.Microsoft, Questions.Why }
+```
+
+It would then make sure to grab the values from the references and name the fields so they match the passed references. And also this would be an instance of the same type as the last 2 examples.

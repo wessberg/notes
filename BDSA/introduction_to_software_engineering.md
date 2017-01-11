@@ -151,7 +151,7 @@ Rationale represents a much larger amount of information than solution models. (
 When asked to explain a decision developers may have to spend a substantial amount of time recovering its rationale.
 
 ## Software Engineering concepts
-<img src="assets/software_engineering_concepts_illustration" />
+<img src="assets/software_engineering_concepts_illustration.png" />
 ### Project
 A *project* has the purpose of developing a software system. It is composed of a number of *activities*.
 

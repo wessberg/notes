@@ -835,8 +835,63 @@ Often, you can assume that code presented for a class would work equally well fo
 
 **But know that objects of type of a struct are passed by value!**
 
-### Instantiating a `struct`
-You use the `new` keyword to declare an instance just like classes.
+An example of a `struct` could be:
+```csharp
+public struct Dimensions
+{
+	public double Length { get; set; }
+	public double Width { get; set; }
+}
+```
+
+Structs can have methods and constructors too.
+
+- Structs do **not** support inheritance.
+- With a struct, you can lay out how the fields are to be laid out in memory.
+- It is considered acceptable to have public fields in structs which is an exception to the guidelines for classes which states that they should be private (if they aren't static).
+
+### Structs are Value types - You don't need to call `new`
+Remember - just like with other value types, you don't need to call `new` to use a struct. The only reason you might have for calling `new` is if you actually want to do some work when constructing it.
+
+For instance, imagine the following struct:
+```csharp
+public struct Dimensions
+{
+	public double Length { get; set; }
+	public double Width { get; set; }
+
+	public Dimensions (double length, double width)
+	{
+		Length = length;
+		Width = width;
+	}
+}
+```
+
+You would then be able to do:
+```csharp
+Dimensions dimensions;
+dimensions.Length = 3;
+dimensions.Width = 6;
+```
+
+But that could be as easily achieved with:
+```csharp
+Dimensions dimensions = new Dimensions(3, 6);
+```
+
+### Performance of structs
+Good things:
+- Memory allocation takes place inline or on the stack (which is very fast!)
+- Structs are cleaned up quickly and don't need to wait on garbage collection.
+
+"Bad" things:
+- Whenever you assign a struct to another struct (for instance, `A = B` where `A` and `B` are structs), the full contents of the struct are copied (just like any other value types) whereas for a class only the reference is copied.
+
+**So, structs are great for small, simple data structures. Use classes for more complex things.**
+
+### Inheritance in structs
+You can't do it. But remember, structs *do* derive from `System.ValueType` which derives from `System.Object` just like any other value type in C#.
 
 ## Properties (getters and setters / accessors)
 To write accessors, you can do:
@@ -1102,3 +1157,364 @@ var pureMagic = new { Companies.Microsoft, Questions.Why }
 ```
 
 It would then make sure to grab the values from the references and name the fields so they match the passed references. And also this would be an instance of the same type as the last 2 examples.
+
+## Passing structs as references
+Remember, structs are value types. This means that if you pass a struct to a method, it is actually copied. This also means that if you changed one of the properties within the method, the original struct wouldn't be affected.
+
+For instance:
+```csharp
+static void Main ()
+{
+	MyStruct myStruct = new MyStruct { SomeProperty = 3};
+	ChangeSomeProperty(myStruct); // Passes a copy of myStruct
+}
+static void ChangeSomeProperty (MyStruct myStruct)
+{
+	myStruct.SomeProperty = 2; // Doesn't affect the myStruct in the Main method
+}
+```
+Would not change `SomeProperty` in the `myStruct` from the `Main` method.
+
+BUT you can pass a reference to it with the `ref` keyword to make structs behave like classes would for the same case:
+```csharp
+static void Main ()
+{
+	MyStruct myStruct = new MyStruct { SomeProperty = 3};
+	ChangeSomeProperty(ref myStruct); // Passes a reference to myStruct
+}
+static void ChangeSomeProperty (ref MyStruct myStruct)
+{
+	myStruct.SomeProperty = 2; // DOES affect the myStruct in the Main method
+}
+```
+
+That is pure genius!
+
+## Passing classes as references with the `ref` keyword
+Imagine:
+```csharp
+static void ChangeSomeProperty (MyClass myClass)
+{
+	myClass.SomeProperty = 2;
+	myClass = new MyClass();
+}
+```
+
+Obviously, when `ChangeSomeProperty` is called with a class, it is passed by reference which means that the `myClass.SomeProperty = 2` assignment alters the value of referenced class (and not a copy local to the method like in the case of a value type), *but*, when `myClass = new MyClass()` is called, that would change the reference of `a` **inside the method** to the new object located on the heap, but the one in the `Main` function would still hold a reference to the old one.
+
+But if you did:
+```csharp
+static void ChangeSomeProperty (ref MyClass myClass)
+{
+	myClass.SomeProperty = 2;
+	myClass = new MyClass();
+}
+```
+You would actually pass a *reference to a reference* which would mean that `myClass` inside the method would hold a reference not to the `myClass` identifier, but to the actual object on the heap and thus the `myClass = new MyClass()` method call would then reassign/reuse that memory location for the new object. The change would then be reflected both inside and outside the method, since the memory location would be the same. You could also say this is a classic example of getting a pointer as method argument in C/C++ terminology.
+
+## Out parameters
+
+Behaves identically to ref in the sense that arguments that are prepended with `out` is not copied over in the case of value types, but instead pass a reference to a memory location.
+
+**The only difference is that it doesn't require the passed value/reference to be initialized beforehand.**
+
+For instance:
+```csharp
+int result;
+int.TryParse("1", out result);
+```
+This makes C# attempt to parse the string for an integer and it will then store the integer value in the passed variable `result`.
+
+## Nullable types
+Variables of reference types can be null.
+Variables of value types cannot.
+
+It can be a problem in some cases, for instance in database mapping where most databases allows primitive types to be null.
+
+C# solves this with nullable types.
+A nullable type is a value type that can be null.
+You simply need to put a `?` after the type (which needs to be a value type, since reference types already supports being null).
+
+You can't just assign a nullable type to a non-nullable type since it may be null. So, you will need to cast it:
+```csharp
+int x1 = 1;
+int? x2 = null;
+
+x2 = x1; // Yup, that would be fine.
+x1 = x2; // Nope, wouldn't work - x2 can be null!
+
+x2 = 123;
+x1 = (int)x2; // Yup, that would be fine!
+```
+
+The best and most pretty way, though, would be to use the coalescing operator which assigns the value on the left-hand side if it is not null, otherwise the value on the right-hand side will be assigned:
+```csharp
+x1 = x2 ?? -1;
+```
+
+## Enums
+To get all values of an enum, you can use the method `Enum.GetValues(typeof(EnumName))`.
+
+To get all the names of an Enum, you can use the method `Enum.GetNames(typeof(EnumName))`
+
+## The `partial` keyword
+You can place the `partial` keyword before a class, struct or an interface. This allows it to span multiple files.
+
+For instance:
+
+```csharp
+// FileNo1.cs
+partial class SampleClass
+{
+	public void MethodOne () {}
+}
+
+// FileNo2.cs
+partial class SampleClass
+{
+	public void MethodTwo () {}
+}
+```
+When it hits the compiler, a single class will be constructed from the contents.
+
+### Partial methods
+Consider the following:
+```csharp
+partial class SomeClass
+{
+	public void MethodOne ()
+	{
+		APartialMethod();
+	}
+
+	public partial void APartialMethod ();
+}
+```
+
+If there is not an implementation of the partial method, the compiler will simply remove the invocation of the method.
+
+You would then be able to implement the method in another partial class, for instance:
+```csharp
+// In another file
+partial class SomeClass
+{
+	public partial void APartialMethod ()
+	{
+		// Implementation.
+	}
+}
+```
+
+## Extension methods
+A bit dangerous I think. But in some situations, its actually nice. You can extend existing classes with new methods without writing a new class that inherits from it. This is the purpose of *extension methods*.
+
+For instance, say you would extend `string` with a new method:
+```csharp
+public static class StringExtension
+{
+	public static int GetWordCount(this string s) => s.split().Length;
+}
+```
+
+What actually makes the extension become an extension is the `this` keyword inside the `GetWordCount` method arguments. It defines the type that is extended.
+
+What this enables you to do is to call `GetWordCount` on instances of string, for instance:
+```csharp
+string s = "hello, world!";
+s.GetWordCount();
+```
+
+## Inheritance
+**Structs can not be extended, but they *can* implement interfaces.**
+
+### Extending classes
+Here's how:
+```csharp
+public class MySecondClass: MyBaseClass
+```
+
+### Implementing interfaces
+Same syntax as for extending classes:
+```csharp
+public cass MySecondClass: MyBaseClass, ISomeInterface
+```
+
+As you can see, the implemented interfaces use the exact same syntax and is just comma-separated.
+
+### Virtual methods
+If a method is declared as `virtual`, it can be overridden in any derived classes:
+```csharp
+public class Shape
+{
+	public virtual void Draw()
+	{
+		// Implementation
+	}
+}
+```
+
+### Virtual properties
+Like methods, you can declare a property as `virtual`:
+```csharp
+public virtual int Size { get; set; }
+```
+
+**No methods or properties are virtual by default. In other languages, like Java, all methods are virtual by default.**
+
+### Overriding a virtual method or property
+To do so, you need to declare a method as `override`:
+```csharp
+public class Something
+{
+	public virtual void Something ()
+	{
+		// Implementation
+	}
+}
+
+public class SomeOtherThing: Something
+{
+	public override void Something ()
+	{
+		// Implementation
+	}
+}
+
+```
+
+The signature *and* return type must match exactly.
+
+## Hidden methods
+If a method with the same signature is declared in both base and derived classes **but the methods are not declared with the modifiers `virtual` and `override` respectively**, then the derived class version is said to *hide* the base class version.
+
+If you were to call the method from the base-class, it wouldn't invoke the one that is implemented in the derived class, instead it would use the one located in the base class which is not what you want for instances of the derived class.
+
+## Calling Base versions of methods (`super()` calls)
+So let's imagine that a virtual method is overridden in a derived class. You are able to call the base version of the method using the syntax: `base.<MethodName>`:
+```csharp
+public class Something
+{
+	public virtual void DoStuff () {
+		// Implementation
+	}
+}
+
+public class SomeOtherThing: Something
+{
+	public override void DoStuff ()
+	{
+		base.DoStuff();
+	}
+}
+```
+
+So, it is like `super()` in some other languages.
+
+## Abstract classes and methods
+An abstract method is *automatically* virtual.
+
+## Sealed classes and methods
+You can declare a class as `sealed` if it should **not** be possible to derive from it.
+
+You can declare a method or property as `sealed` if it should not be possible to override it. **You can only seal methods or properties that have first been overridden from a base class! If you do not want to this, then simply don't mark it as virtual.**
+```csharp
+sealed class FinalClass
+{
+	// Implementation
+}
+
+// or
+
+class SomeClass
+{
+	public sealed override string ToString()
+	{
+		// Implementation
+	}
+}
+
+class DerivedClass: SomeClass
+{
+	// This causes a compiler error: The method is sealed!
+	public override string ToString() {}
+}
+
+```
+
+## Constructors of derived classes
+To call the constructor of the base class, do this:
+```csharp
+public ConstructorForDerivedClass (): base()
+{
+}
+```
+
+It is the `: base()` that makes C# call the corresponding constructor in the base class. So it is like `super()` from the constructor in other languages.
+
+If it has arguments, you can do this:
+```csharp
+public ConstructorForDerivedClass (string arg1, int arg2): base(arg1, arg2)
+{
+}
+```
+It also works with named arguments.
+
+## Access modifiers
+<table>
+	<tr>
+		<td><strong>Modifier</strong></td>
+		<td><strong>Applies to</strong></td>
+		<td><strong>Description</strong></td>
+	</tr>
+	<tr>
+		<td><code>public</code></td>
+		<td>Any types of members</td>
+		<td>The item is visible to any other code</td>
+	</tr>
+	<tr>
+		<td><code>protected</code></td>
+		<td>Any member of a type, and any nested type</td>
+		<td>The item is visible only to any derived type (and its own type!)</td>
+	</tr>
+	<tr>
+		<td><code>internal</code></td>
+		<td>Any types of members</td>
+		<td>The item is visible only within its containing assembly</td>
+	</tr>
+	<tr>
+		<td><code>private</code></td>
+		<td>Any member of a type and any nested type</td>
+		<td>The item is visible only inside the type to which it belongs</td>
+	</tr>
+	<tr>
+		<td><code>protected internal</code></td>
+		<td>Any member of a type and any nested type</td>
+		<td>The item is visible to any code within its containing assembly and to any code inside a derived type</td>
+	</tr>
+</table>
+
+## `is` and `as` operators
+Casting stuff will throw an `InvalidCastException` if the thing that is attempted to be cast is not castable.
+
+Using the `as` keyword instead, you can perform a cast, but if it can't be done, it will instead return `null` and don't throw an exception:
+```csharp
+public void WithWithManyDifferentObjects(object o)
+{
+	IBankAccount account = o as IBankAccount;
+	if (account != null)
+	{
+		// Do something
+	}
+}
+```
+
+You can also use the `is` operator which is kind of like `instanceOf` checks in Java or Javascript:
+```csharp
+public void WithWithManyDifferentObjects(object o)
+{
+	if (o is IBankAccount)
+	{
+		// Do something.
+	}
+}
+```

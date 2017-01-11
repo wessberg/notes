@@ -1,4 +1,4 @@
-# Basics
+# C# and .NET basics
 > Christian Nagel: Professional C# 6 and .NET Core 1.0, Wrox 2016 [PrC#6]: chapters 1, 2, 3, and 4.
 > Peter Sestoft: C# Precisely Second Edition, MIT 2012 [C#P2]: chapters 1, 2, and 3.
 
@@ -823,3 +823,253 @@ It seems the point is that reading/writing properties should be atomic operation
 
 ### Use of fields
 - Fields should always be private except for constants or read-only fields that should be public.
+
+## Structs
+Structs differ from classes because they do not need to be allocated on the heap (classes are reference types and are always allocated on the heap whereas primitive types are stored on the stack).
+
+**Structs are value types and are usually stored on the stack. Also, structs cannot derive from a base struct.**
+
+You typically use structs for smaller data types for performance reasons (for instance if you would like instances to be allocated on the stack rather than on the managed heap). Structs does look very similar to classes. The main difference is that you use the keyword `struct` instead of `class` to declare them.
+
+Often, you can assume that code presented for a class would work equally well for a struct.
+
+**But know that objects of type of a struct are passed by value!**
+
+### Instantiating a `struct`
+You use the `new` keyword to declare an instance just like classes.
+
+## Properties (getters and setters / accessors)
+To write accessors, you can do:
+```csharp
+private int _someProp;
+public int SomeProp
+{
+	get { return _someProp; }
+	set { _firstName = value; }
+}
+```
+
+You can't give any parameters for a `set` accessor, but the compiler assumes it takes one parameter which is referred to with the keyword `value`.
+
+### Access Modifiers for Properties
+You can allow differing access modifiers on getters and setters:
+```csharp
+private int _someProp;
+public int SomeProp
+{
+	get { return _someProp; }
+	private set { _someProp = value; }
+}
+```
+
+### Auto-Implemented properties
+If there is not going to be any logic in the getter/setter, you can use a nice Microsoft-Magic powered shorthand version:
+```csharp
+public int SomeProp { get; set; }
+```
+
+You can also initialize properties with a *property initializer*:
+```csharp
+public int SomeProp { get; set; } = 42;
+```
+
+You can also use access modifiers for auto-Implemented properties:
+```csharp
+public int SomeProp { get; private set; }
+```
+
+## Methods
+### Expression-Bodied methods
+If the implementation of a method consists just of one statement, you can use arrow-expressions (or *expression-bodied methods*) for declaring the method:
+
+```csharp
+public bool IsIdentical (int num) => num == anotherNum;
+```
+
+Now *that's* nice. All languages should have arrow-functions for instance methods!
+
+### Method Overloading
+Several versions exist of the method but with different signatures. One overloaded method can invoke another. C# will figure out which version to use according to the types of arguments.
+
+For instance:
+```csharp
+class MyClass
+{
+	public int DoSomething (int x)
+	{
+		return DoSomething(x, 10);
+	}
+
+	public int DoSomething (int x, int y)
+	{
+		return x + y;
+	}
+}
+```
+
+### Expression-Bodied Properties (Computed properties)
+
+Expression-bodied properties are properties with the `get` accessor, but where you don't need to write the `get` keyword - Just the implementation of the `get` accessor follows the lambda operator:
+```csharp
+public class Person
+{
+	public string FirstName { get; }
+	public string LastName { get; }
+	public string FullName => $"{FirstName} {LastName}"
+}
+```
+
+Very nice and clean!
+
+### Named arguments in invoked methods
+For strictly readability-related reasons, you can name the arguments you call a method with. For instance, say you had this method:
+```csharp
+public void CoolMethod (int x, int y) {};
+```
+
+You could then give names to the arguments you pass to the method when invoking it so it is immediately clear to the reader what is what:
+```csharp
+CoolMethod(x: 10, y: 20);
+```
+
+For the compiled code, there is no difference, *but* you can actually reorder the arguments in this way by referring to the names of the arguments in the named arguments!
+
+For instance, I could have written:
+```csharp
+CoolMethod(y: 20, x: 10);
+```
+
+...And that would have been a-okay.
+
+### Optional arguments
+You can declare optional arguments as long as you assign default values to them.
+
+Also, optional parameters must be the last ones defined.
+
+```csharp
+public void SomeMethod (int notOptionalNumber, int optionalNumber = 42) {}
+```
+
+This allows for the method to be called with only 1 argument.
+
+But here comes the cool part:
+Imagine you had this method signature:
+```csharp
+public void SomeMethod (int x, int optY = 2, int opZ = 3) {}
+```
+
+Then you could invoke it with a named argument, stating which of the optional arguments to override the default value for:
+```csharp
+SomeMethod(5, optZ: 10);
+```
+
+That is really nice. It avoids these scenarios where you have to fill-in a lot of values, either `null` in some languages or in other cases actually read the implementation and manually call the method with the default values from the implementation (which might change in the future without your knowledge when updating package dependencies, etc).
+
+### Variable number of arguments
+Like `aMethod(...restArguments)` in Javascript, we have this in C#:
+```csharp
+void SomeMethod (params int[] data) {}
+```
+
+Which then enables you to loop through the arguments or whatever you want. But also, it allows for the client to invoke the method with an arbitrary amount of arguments without the need for, say, providing lots of overridden methods for any amount of potential arguments (which was doomed from the start!)
+
+## Calling constructors from other constructors
+Say we have this scenario with two constructors:
+```csharp
+public class SomeClass
+{
+	private string _field1;
+	private string _field2;
+
+	public SomeClass (string arg1)
+	{
+		_field1 = arg1;
+		_field2 = "lol, omg";
+	}
+
+	public SomeClass (string arg1, string arg2)
+	{
+		_field1 = arg1;
+		_field2 = arg2;
+	}
+}
+```
+
+It would be nice to not need to write the same code twice. So Microsoft offers some Microsoft-Magic for us here:
+
+```csharp
+public class SomeClass
+{
+	private string _field1;
+	private string _field2;
+
+	public SomeClass (string arg1): this(arg1, "lol, whatever like")
+	{
+	}
+
+	public SomeClass (string arg1, string arg2)
+	{
+		_field1 = arg1;
+		_field2 = arg2;
+	}
+}
+```
+
+Which just causes the constructor with the nearest matching parameters to be called.
+
+## Static Constructors
+It is possible to write a static no-parameter constructor for a class. Such a constructor is executed only once, unlike other constructors (which are obviously called for each time an instance of a class is constructed).
+
+Here's the syntax:
+```csharp
+class MyClass
+{
+	static MyClass()
+	{
+		// Initialization code here.
+	}
+}
+```
+
+One use-case could be that some static fields or properties need to be initialized from an external source before the class is used for the first time.
+
+**The .NET runtime makes no guarantees about when a static constructor will be executed *but* it guarantees that it is run exactly once and before your code makes any reference to the class. It is usually executed immediately before the first call to any member of the class.**
+
+## Static classes
+If you give a class a `static` modifier, it cannot be instantiated - thus it may only contain static methods and fields. *However*, it *does* support a static constructor (obviously).
+
+## Readonly members
+The `readonly` keyword can be used if you do not want to change a data member after initialization.
+
+### Readonly fields
+Fields with the `readonly` modifier can be assigned only values from constructors (or be initialized to some value in the declaration, but then you should go for `const` instead.).
+
+### Readonly properties
+Easy with Microsoft-Magic. Just omit the setter and initialize the value:
+```csharp
+public string SomeProp { get; } = "This value will never change";
+```
+
+As you can see, the value can never be set again - but it *is* initialized to something.
+
+This is pretty much shorthand for:
+```csharp
+private readonly string _someProp;
+public string SomeProp
+{
+	get { return _someProp; }
+}
+```
+...Except for the fact that `_someProp` would then need to be set directly in the constructor.
+
+### `readonly` vs `constant`
+`readonly` values are assigned during runtime from a constructor. This is useful if you want the value to be assigned *once*, but wants the value to be set dynamically according to some given arguments.
+
+`const` are declared on compile-time and thus must be initialized to value in the declaration. This means that you must know which value to assign to the field when you declare the field.
+
+Nice!
+
+## Immutable types
+If an object only have `readonly` members, it is an immutable type. The content can *only* be set on initialization time.
+
+## Anonymous types

@@ -394,9 +394,13 @@ The following sections are found:
 3. *Proposed system*: Documents the requirements elicitation and analysis model of the new system.
 
 It is divided into:
+
 	-	*Overview*: Presents a functional overview of the system.
+
 	- *Functional requirements*: Describes the high-level functionality of the system.
+
 	- *Nonfunctional requirements*: Describes the user-level requirements that are not directly related to functionality, including usability, reliability, performance, supportability, implementation, interface, operational, packaging and legal requirements.
+
 	- *System models*: Describes the scenarios, use cases, object model and dynamic models for the system. This also includes mock-ups.
 
 The RAD is put under configuration management (Version Control) which also means that it can be revised along the way while tracking who changed what, when and why.

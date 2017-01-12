@@ -85,7 +85,7 @@ The problem-solving activity of engineering involves five steps:
 
 5. Specify the solution.
 
-## Development activities of Object-oriented software Development
+## Development activities of Object-oriented software Development (Software Lifecycle Activities)
 There are typically six of them:
 
 1. Requirements Elicitation

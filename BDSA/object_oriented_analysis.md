@@ -83,6 +83,7 @@ For instance, `Button` and `TouchDisplay` are boundary objects.
 
 ### Control Objects
 These are in charge of realizing use cases.
+**Represent application-specific business rules (couldn't be used in another application, generally speaking)**.
 
 For instance, `ChangeDateControl` is a control object.
 
@@ -96,6 +97,9 @@ Also, boundary objects (user interface) are much more likely to change than the 
 ### How three-object-types are depicted
 Using stereotypes!
 <img src="assets/three-object-types.png" />
+
+...or with icons:
+<img src="assets/three-object-types-icons.png" />
 
 ### Naming conventions for three-object-types
 - Control objects have *"Control"* suffixed their name. For instance, `ChangeDateControl`.

@@ -1,4 +1,4 @@
-# (C#) Lambdas, Extensions and LINQ
+# (C#) Delegates, Lambdas, Extensions and LINQ
 > [PrC#6]: chapters 9 and 13.
 > [C#P2]: chapters 12.22, 12.23, 12.24, 12.25
 

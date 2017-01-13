@@ -7,184 +7,176 @@ Delegates are **addresses to methods**. Its like function pointers from C++ exce
 
 Delegates are used **when you want to pass methods around to other methods**.
 
+What makes delegates particularly smart is that you can pass lambda expressions directly to a parameter that is of a delegate type.
+
+So, note-to-self, its like the following type declaration in flow:
+```javascript
+aMethod (func: (someArg: string) => number): void;
+```
+
+Where we'd simply say: *"the first argument must be a function that takes a string and returns a number"*.
+
+Back to C#:
+
 Here's an example of how to declare a `delegate`:
 ```csharp
 delegate void IntMethodInvoker(int x);
 ```
 
-This indicates that each instance of this delegate can hold a reference
-to a method that takes one `int` parameter and returns `void`.
+This indicates that each instance of this delegate can hold a reference to a method that takes one `int` parameter and returns `void`.
 
-Another example could be a method that takes no arguments and returns a string:
+Another example could be a method that takes no arguments and returns an int:
 ```csharp
-delegate string GetAString();
+delegate int ReturnInt();
 ```
 
 The delegate then becomes a **type**, meaning, its effectively a `class` with a single method. To use a delegate, you'd have to implement it:
 ```csharp
-delegate string GetAString();
-public static void Main() {
-	int x = 40;
-	GetAString AMethod = new GetAString(x.ToString);
-	AMethod(); // Returns a string.
-}
-```
-This will create a method, `AMethod` which takes no arguments and returns a string when called.
+public class MyClass
+	{
+		delegate int ReturnInt(string str);
+		public MyClass()
+		{
+			var method = new ReturnInt(Whatever);
+		}
 
-Delegates in C# always has a one-parameter constructor, the parameter being the method to which the delegate refers. The methods signature must reflect the signature of the delegate (int.ToString doesn't take arguments and returns a string, so it is valid).
+		private int Whatever(string str)
+		{
+			return 2;
+		}
+	}
+```
+
+Delegates in C# always has a one-parameter constructor, the parameter being the method to which the delegate refers. The methods signature must reflect the signature of the delegate.
 
 #### An easier way of writing Delegates
 In the example above, we could also have written the following:
 ```csharp
-GetAString AMethod = x.ToString;
+ReturnInt method = Whatever;
 ```
 
 C# would then translate that to the previous example. Its a short-hand syntactical-sugar way of doing the same thing. This is called **Delegate inference**.
 
-### Lambda expressions
-Lambda expressions are directly related to delegates.
+## Use cases
+- **Sorting**: A sorting method can accept a comparer method (a method that will be responsible for the comparisons). This allows the user of a library to easily define his/her own sorting.
 
-# From the lecture
+- **Events**: When an event is raised, the runtime needs to know what method should be executed (like `addEventListener(name, handler)` in Javascript, where handler is a delegate method).
 
-## .NET Core
+### `Action<T>` and `Func<T>` delegates
+C# comes with some predefined delegates that you should use when you can.
 
-Cross-platform version of .NET (works on macOS, Linux & Windows).
+### Action<T>
+An `Action` is for calling a method that returns `void`. It is generic, so you can go ahead and have fun with up to 16 parameters (including one without parameters).
 
-### CLI
-name: `dotnet`
-Make sure that the executable is in your path.
+### Func<T>
+A `Func` is similar to `Action`, except it also has a `return` type: `Func<in T, out TResult>`.
 
-### CLI Commands
-#### `dotnet new`
-Creates a new .NET project with a `Program.cs` file (a basic 'Hello world!' example).
+## Multicast Delegates
+It is possible for a delegate to wrap more than one method. This is used as a *multicast delegate*.
 
-#### `dotnet restore`
-Fetches dependencies from NuGET.
+**When a multicast delegate is called, it successively calls each method in order.**
 
-#### `dotnet run`
-Compiles and runs a .NET application.
+The delegate signature should return `void`, otherwise you would only get the result of the last method invoked by the delegate.
 
-#### `dotnet test`
-Runs all the project's tests and prints the results on the command line.
-
-## `delegate` keyword.
-Kinda like abstract class methods.
-Say you declare the following field on your class:
-```c#
-public delegate void Act(object o);
-```
-You could then later in your code state that a variable has the type `Act`, but that would require you to properly implement the signature of the `Act` delegate.
-This would be illegal:
-`Act print = delegate(string str) { Console.WriteLine(str); }`
-Reason: argument 1 must be an object.
-
-This would be illegal too:
-`Act print = delegate(object o) { return o; }`
-Reason: delegate method must return `void`.
-
-This, however, would be legal:
-`Act print = delegate(object o) { Console.WriteLine(o); }`.
-
-## Generic `Func` type
-`Func` is a generic `delegate`. The signature is
-`Func<T, TResult>` (it can have up to 16 arguments where the last one is the type of the return value.)
-That means that `Func<int, int, int>` means *Give me two integers and make me return an integer*. For instance, the following method is a valid usage of `Func` with lambdas:
-```c#
-Func<int, int, int> subtract = (x1, y1) => x1 - y1;
+Via some truly black Microsoft-Magic, you can add or remove method calls from the delegate with the `+=` and `-=` operators:
+```csharp
+Action<double> operations = MathOperations.MultiplyByTwo;
+operations += MathOperations.Square;
 ```
 
-## Generic `Action` type
-A specialized version of `Func` that says `Give me something and return void`. Its basically a more semantic way to write methods that doesn't return anything.
-For instance,
-```c#
-Action<string> Print = str => Console.WriteLine(str);
-```
+So, then it works like `yield` (at least to me) where, each time you invoke the `operations` delegate method, the "next" delegate function is called.
 
-## Generic `Predicate` type
-A specialized version of `Func` that says `Give me something and return a boolean`. Its basically a more semantic way to write methods that returns boolean values. For instance,
-```c#
-Predicate<int> isEven = x => x % 2 == 0;
-```
+For instance:
+```csharp
+public class MyClass
+	{
+		public MyClass()
+		{
+			// When an action should take no arguments,
+			// obviously it should not be made generic.
+			Action operations = () => WriteLine("Foo!");
+			operations += () => WriteLine("Bar!");
 
-## Anonymous types.
-Pretty cool stuff. Say you write the following C# code:
-```c#
-var hero = new { Name = "Batman", City = "Gotham City" };
-```
-
-What you'll get is an anonymous type: `{name: string, city: string}` and the instance `hero` with the respectful values `"Batman"` and `"Gotham City"`.
-
-#### Object destructuring in Anonymous types.
-Say you have the following variables:
-```c#
-var Name = "Superman";
-var City = "Metropolis";
-```
-
-C# can infer the field names and values directly from the local variables via object destructuring:
-```c#
-var hero = new { Name, City}
-```
-
-#### Gotchas
-**All properties of anonymous types are read-only.**
-You can't do this `hero.Name = "foo";` after declaring the anonymous types.
-
-## Extensions
-Sometimes, you don't want to subclass something to give it new functionality. For instance, `IEnumerables` have a fixed set of instance methods available. However, with extensions, you can add more instance methods to a class. For instance, say you'd like to extend the `IEnumerable` interface with a `Print` method. You would then declare an static class with a generic method `Print<T>`:
-```c#
-public static class IEnumerableExtensions {
-
-	public static void Print<T>(this IEnumerable<T> items) {
-		throw new NotImplementedException();
+			operations(); // Prints "Foo!";
+			operations(); // Prints "Bar!";
+		}
 	}
+```
+
+**IMPORTANT! The order in which chained methods will be called with multicast delegates is arbitrary! Do not rely on expecting it to be ordered!**
+
+## Anonymous methods
+Instead of passing a reference to a method, you can pass an *anonymous method* (not to be confused with a lambda):
+```csharp
+Action action = delegate()
+{
+	// Anonymous method body
 }
 ```
-The `this` keyword inside the first argument refers to the object that we are extending.
 
-You would then be able to call the `.print()` method on all `IEnumerables`.
+So, you simply *invoke* the delegate keyword and put the method body inside the curly brackets. If the method should take arguments, put 'em inside the invocation parentheses.
 
-Thats pretty awesome. You'd then be able to fit it inside functional chains like:
-```c#
-str
-	.ToLower()
-	.MakeSuperAwesome()
-	.NoNotThatAwesome()
-	.ABitMoreAwesomeNow()
-	.Perfect()
+Obviously, this is a lot prettier with lambdas:
+
+### Lambda expressions
+Lambda expressions are directly related to delegates.
+Lambdas can be used whenever you have a delegate parameter type as an inline method.
+
+For instance:
+```csharp
+public class MyClass
+	{
+		delegate void OnReady();
+
+		public MyClass ()
+		{
+			DoCoolStuff(() =>
+			{
+				WriteLine("I am called every second!");
+			});
+		}
+
+		async Task DoCoolStuff(OnReady callback)
+		{
+			while (true)
+			{
+				await Task.Delay(1000);
+				callback();
+			}
+
+		}
+	}
 ```
 
-## LINQ (Language-Integrated-Query)
-The LINQ framework for C## adds a bunch of extension methods that makes it support functional queries like we know from functional languages such as SQL.
-It allows for stuff like:
-```c#
-var result = collection
-	.where(x => x.Value > 2)
-	.OrderBy
-	(x.Name)
-	.TakeFirst(2)
+Notice how the `DoCoolStuff` method takes a delegate type which allows you to pass a method to the method as if it was *first-class citizen*. Notice also how I simply passed a lambda expression to the method invocation.
+
+Lambdas in C# really is a beautiful thing, but it is *exactly* like in ES2015, so I'm not going to write notes on it.
+
+## Closures
+Again, a beautiful thing. Allows you to access variables outside the block of the lambda expression (I'd rather say outside the current scope of execution).
+
+Obviously this has some implications - it means that the variables referenced inside the lambda expression won't be garbage collected (they often shouldn't anyway.
+
+I guess I intuitively understand Closures from Javascript and don't feel like writing that much about it.
+
+## Events
+Events are based on delegates.
+To define an event, use the `event` keyword.
+For instance,
+```csharp
+public event EventHandler<SomeEventInfoArgs> SomeEventType;
+
+// Later on
+SomeEventType.Invoke(this, new SomeEventInfoArgs(something));
 ```
 
-LINQ expressions gets evaluated every time you enumerate on them. Say you have the following expression:
-```c#
-var result = repo.Numbers.Where(x => x >= 10);
+Here, the event that is offered is a `SomeEventType` event of type `EventHandler<SomeEventInfoArgs>`.
 
-repo.Numbers.add(10);
-Console.WriteLine(result);
-```
+To invoke an event, you must pass the sender of the event (typically `this`, but not necessarily) as well as an object that derives from `EventArgs`.
 
-'result' would then also print the value we added after declaring the variable. It is a *live-collection* in the sense that it gets evaluated once every time you enumerate it.
+## Weak Events
+With events, the publisher and listener are directly connected. This can be a problem with garbage collection.
 
-If you instead want a fixed-in-time representation of the query, call 'ToArray', 'ToList' or 'ToDictionary' on the result.
+Use the weak event pattern and the `WeakEventManager<T>` as an intermediary between the publishers and listeners to get around this (it seems like this is specific for Windows as it is part of `System.Windows`).
 
-LINQ is tightly integrated with C#. So much that you can write SQL-like syntax empowered by the framework to do your functional queries.
-
-The following is valid c# code:
-```c#
-var heroesThatStartsWithB =
-	from hero in heroes
-	where hero.AlterEgo.StartsWith("B")
-	select hero;
-```
-
-That would return all heroes that starts with *B* in a SQL-like way. The only difference being that the `from` and `select` statements have switched places.
+# Language Integrated Query (LINQ)

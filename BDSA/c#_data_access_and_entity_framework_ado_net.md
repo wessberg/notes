@@ -508,3 +508,10 @@ private static async Task SomeComplexTaskWithTransactions
 
 }
 ```
+
+## Data Transfer Objects (DTOs)
+These are constructs designed to pass data from one system to another.
+
+**DTOs should contain only data and not business logic!**
+
+You should map the Entity Framework models to DTOs by mapping them.

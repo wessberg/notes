@@ -74,8 +74,119 @@ Here are some concepts that will be used in the definition of these patterns:
 - The *implementor* class provides the lower-level behavior of the pattern. In many patterns, a number of collaborating implementor classes are needed to realize the pattern behavior.
 - The *extender* class specializes an implementor class to provide a different implementation or an extended behavior of the pattern.
 
+## Decorator pattern
+<img src="assets/decorator_pattern_2.png" />
+**STRUCTURAL DESIGN PATTERN**
+
+Allows for dynamically adding functionalities/behavior to an object.
+
+It is a more flexible alternative to subclassing an object aimed at extending it.
+
+For instance, say I wanted to **sometimes** provided border to my `TextArea`. Should I create `BorderedTextArea` subclass of `TextArea`?
+
+The Decorator pattern says no.
+
+Instead, have the `TextArea` derive from another object responsible for handling the decoration (and the client interaction).
+
+Give that object the same interface as the, in this example, `TextArea` that the client wants to perform actions on.
+
+The principle is that you can chain any number of decorators. So, now you can do stuff like `new BorderDecorator( new TextArea() );` or just `new TextArea()`.
+
+### Decorator vs inheritance
+The decorator pattern is dynamic (happens on run time).
+
+Any combination of decorators can be created.
+
+### Decorator vs composite
+It *is* pretty much like a composite, except with one single component.
+
+But, the *purpose* of the composite pattern is to aggregate objects while the purpose of the decorator pattern is to add behavior to an object.
+
+### Decorator vs adapter
+- Decorator enriches the functionalities **without modifying the interface.**
+
+- Decorator modifies the responsibilities of an object, **not its interface**.
+
+- Adapter modifies the interface of an object.
+
+## Proxy pattern
+<img src="assets/proxy_design_pattern.png" />
+**STRUCTURAL DESIGN PATTERN**
+
+It provides a surrogate or a placeholder for an object - to control its access. Without the user ever knowing it.
+
+So, as you can see in the diagram, the user is *actually* communication with a Proxy class that implements the same interface as the `RealSubject` class (the requested action). The Proxy will then determine if the operation should execute (and optionally some other work like logging it) and manually delegate the execution of the operation to the "actual" implementation.
+
+## Visitor pattern
+<img src="assets/visitor_pattern.png" />
+**BEHAVIORAL DESIGN PATTERN**
+
+The visitor pattern allow the definition of a new operation for a hierarchy of classes without modifying the classes themselves.
+
+It can be used in a class hierarchy.
+
+It's pretty weird. You define a subclass **for each operation you want to add**. Each of these subclasses then has overloaded methods taking each of the parallel subclasses as arguments.
+
+The takeaways are these:
+- It has high coupling between the visitor and the visited hierarchy.
+
+- It is pretty controversial
+
+- Use an alternative
+
+// TODO: Maybe understand this pattern better and come up with something that makes sense.
+[Read this one](https://sourcemaking.com/design_patterns/visitor)
+
+## Chain of responsibilities pattern
+<img src="assets/chain_of_responsibilities_pattern.png" />
+**BEHAVIORAL DESIGN PATTERN**
+
+This is a pattern (like many others) for enforcing indirect communication between sender of a request and the receiver.
+
+**<em>But</em>, what makes it special is that more than one object can satisfy the request**.
+
+A client submits a request to an abstract base class (as always): the `Handler`.
+
+The concrete derived handler class that first receives the request then checks if it can fulfill it. If not, it will *pass the request on* down the chain until it arrives at a concrete handler that can actually fulfill it. If none can (e.g. if the request arrives at the last link of the chain), that handler will know that the request can't be fulfilled.
+
+When I think of an example of a chain of responsibilities, I think of event propagation which "bubbles up" until it reaches an event handler.
+
+## Façade pattern
+<img src="assets/facade_pattern.png" />
+**STRUCTURAL DESIGN PATTERN**
+It can be used to simplify the use of a system by providing a unified interface for a group of various functionalities from a multitude of interfaces/classes.
+
+It then hides the components of the subsystem from the client.
+However, the client can still, if necessary, use the classes of the subsystem directly (I guess this is open to interpretation. Is this a requirement?)
+
+### Façade vs Adapter
+Both of them are based on an interface, but
+- Façade simplifies it
+- Adapter converts it.
+
+## Observer Design Pattern
+<img src="assets/observer_pattern.png" />
+**BEHAVIORAL DESIGN PATTERN**
+
+It has a set of objects "observing" the state of an object. They will be notified and updated immediately when the state changes.
+
+All observers need to register themselves as observers. When the state changes, all observers will then be notified (by calling a method).
+
+Its up to the observers to figure out what to do with that notice.
+
+Typically, the observers are "views" which makes the observer pattern awesome for user interface design.
+
+## Template Design method
+<img src="assets/template_pattern.png" />
+It defines the structure of an algorithm in one method - **but leaves some parts undefined.**
+
+The actual implementation of the unspecified parts is contained in other methods which implementation is found in subclasses.
+
+Very useful in frameworks.
+
 ## Adapter Design Pattern
 <img src="assets/adapter_pattern.png" />
+**STRUCTURAL DESIGN PATTERN**
 
 The Adapter Design Pattern converts the interface of a (typically legacy) component into a different interface expected by the client, so that the client and the legacy class can work together without changes.
 
@@ -95,8 +206,11 @@ Consequences:
 
 ## Bridge Design Pattern
 <img src="assets/bridge_pattern.png" />
+**STRUCTURAL DESIGN PATTERN**
 
 The bridge pattern provides a solution for dynamically substituting multiple realizations of the same interface for different users.
+
+**Bridge is something that could be used in the early stages of a project whereas Adapter is more focused on backwards compatibility**.
 
 When it comes to writing individual subsystems concurrently, some subsystems might be ready before others. Stubs are often used in place of missing subsystems to mock the functionality of it. Other times, multiple versions of the same subsystem are realized to test out their performance.
 
@@ -118,6 +232,7 @@ But:
 - The Bridge pattern uses delegation first and *then* inheritance.
 
 ## Strategy pattern
+**BEHAVIORAL DESIGN PATTERN**
 If we require dynamic switching between two or more implementations on runtime (for instance, Offline or Online backup) and also want to be able to deal with possible future extensions, the strategy pattern is the way to go.
 
 <img src="assets/strategy_pattern.png" />
@@ -126,8 +241,17 @@ The Bridge and Strategy patterns are almost identical in a class diagram. The ke
 
 Also, the Strategy pattern are usually created and substituted several times during run time while the Bridge pattern are usually created at initialization time.
 
-## Abstract Factory pattern
+## Abstract factory pattern
 <img src="assets/factory_pattern.png" />
+**CREATIONAL DESIGN PATTERN**
+
+An *abstract* factory pattern can be used like the factory pattern, except for generation specialized factories, each responsible of being able to create their own kinds of objects.
+
+So, for instance, you could have an abstract factory for constructing BMW or Mercedes factories which you'd then be able to use independently with the factory pattern.
+
+## Factory pattern
+<img src="assets/factory_pattern_uml_diagram.jpg" />
+**CREATIONAL DESIGN PATTERN**
 
 The factory pattern can create instances of objects without exposing the creation logic to the client. This also means that you could call, for instance `shapeFactory.CreateShape("circle")` to get a circle, without having to rely on all sorts of import statements.
 
@@ -136,6 +260,7 @@ It uses specification inheritance to decouple the interface of a product from it
 
 ## Command pattern
 <img src="assets/command_pattern.png" />
+**BEHAVIORAL DESIGN PATTERN**
 The point is, have an abstract class (command class) declares the possible operations, whereas concrete command classes (subclasses) **implement** the commands they can offer.
 So, in the example, `Move` is the command class. It is abstract. It has a single method, `execute` which is implemented by `TicTacToeMove` and `ChessMove`.
 
@@ -146,6 +271,7 @@ So, in the example, `Move` is the command class. It is abstract. It has a single
 The Command pattern is often used in MVC where receivers are model objects, invoker and commands are controller objects and clients creating commands view objects.
 
 ## Composite pattern
+**STRUCTURAL DESIGN PATTERN**
 <img src="assets/composite_pattern.png" />
 A recursive tree-based structural pattern.
 

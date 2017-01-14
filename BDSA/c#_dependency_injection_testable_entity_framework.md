@@ -37,6 +37,13 @@ Obviously, this has lots of benefits:
 ## IoC (Inversion of Control)
 Quite broad and imprecise. The name dependency injection is chosen to provide more precision. However, we do use the term *IoC Container* for Service Providers (which are responsible for injecting implementations of interfaces into classes that depends on them).
 
+## IoC Container
+An IoC container can have various lifetimes:
+
+- Transient (every time).
+- Scoped (once per request).
+- Singleton (once).
+
 ### Forms of Dependency Injection
 The basic idea is to have a separate object, an *assembler*, that populates a field in classes that depends on an implementation of something (usually its passed to the constructor).
 

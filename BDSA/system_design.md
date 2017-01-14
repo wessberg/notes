@@ -699,3 +699,10 @@ So, to resolve this,
 - Maintain an up-to-date glossary (for instance, using git)
 
 - Iterate!!
+
+## Box&Line Diagrams
+<img src="assets/box_and_line_diagrams.png" />
+
+You might not know them by name, but you use them all the time for quick illustrations to fellow developers or clients.
+
+These are very abstract.

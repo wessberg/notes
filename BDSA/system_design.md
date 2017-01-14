@@ -1,5 +1,5 @@
-## SOLID Principles (and System Design)
->[OOSE] ch. 6, 7, 8
+## System Design
+>[OOSE] ch. 6, 7
 
 ### Note-to-self
 System Design is all about subsystem decomposition and identifying which services each subsystem provides.

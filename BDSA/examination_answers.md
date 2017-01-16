@@ -262,6 +262,309 @@ public class Bridge: IBridge
 ```
 
 
+
+
+
+## Exam Question C03:
+*Explain the principles of Design Patterns and described in detail the Template method, Factory method, and Chain of Responsibility patterns including how they can be implemented in C#.*
+
+Design patterns are repeatable solutions to commonly occurring problems in object design. It isn't a finished design that can be transformed directly into code, but rather a template for how to solve a problem that can be used in many different situations.
+
+Design patterns has had lots of field tests. We already know their pros and cons and are able to effectively communicate their value to other developers, who will know them already and be familiar with them. And, our object design will probably become stable earlier since reusing design patterns helps to prevent issues before they arise.
+
+What many of these design patterns have in common is also an indirection communication serving the purpose of loosing up coupling between individual components which results in a more testable, maintainable system.
+
+### Kinds of design patterns
+We differentiate between 3 kinds:
+- **Creational design patterns**: These has to do with the instantiation of instances of objects. *How* we get ahold of objects.
+	-	Factory
+	- Abstract Factory
+
+- **Structural design patterns**: These identifies ways to realize relationships between objects.
+	-	Adapter
+	- Facade
+	- Decorator
+	- Bridge
+	- Proxy
+
+- **Behavioral design patterns**: These has to do with how the objects communicate.
+
+### Template Design method
+<img src="assets/template_pattern.png" />
+It defines the structure of an algorithm in one method - **but leaves some parts undefined.**
+
+The actual implementation of the unspecified parts is contained in other methods which implementation is found in subclasses.
+
+So, imagine for instance if we want to be able to generate some HTML markup, but where the body stays the same, but the header can change. With the template pattern, we would then declare an interface, `IHeadProvider` which can provide markup for the head part. We'd then also declare an interface `IMarkupProvider` which extends `IHeadProvider`, which can provide a body.
+
+We would then implement an abstract base class, `MarkupProvider` which implements `IMarkupProvider` and declare the method for getting the head contents as `abstract`. Its important that it is abstract, because otherwise we would violate the Liskov Substitution principle of the SOLID principles. We would do so since the base class wouldn't be able to ever generate any head markup and thus we couldn't substitute a derived class with a base class.
+
+It would then have a method for simply returning the body contents.
+
+But then we'd subclass it with a `AwesomeProvider` which then implements the `IHeadProvider` interface. This one generates some awesome head contents and wraps the body inside of it.
+
+The client would then simply expect an `IMarkupProvider` and call a `Provide` method on it. We could give it any implementation. For instance, if we want a less awesome header, we could just dependency inject that.
+
+Here's some code for it:
+
+```csharp
+public interface IMarkupProvider: IHeadProvider
+	{
+		string ProvideBody();
+	}
+
+	public interface IHeadProvider
+	{
+		string Provide();
+	}
+
+	public abstract class MarkupProvider: IMarkupProvider
+	{
+		public string ProvideBody() => "<body></body>";
+		public abstract string Provide();
+	}
+
+	public class AwesomeProvider : MarkupProvider
+	{
+		public override string Provide() => $"<head>{ProvideBody()}</head>";
+	}
+
+
+	public class Client
+	{
+		public static void Main(string[] args)
+		{
+			var client = new Client(new AwesomeProvider());
+		}
+		public Client(IHeadProvider markupProvider)
+		{
+			WriteLine(markupProvider.Provide());
+		}
+	}
+```
+
+### Chain of responsibilities pattern
+<img src="assets/chain_of_responsibilities_pattern.png" />
+**BEHAVIORAL DESIGN PATTERN**
+
+This is a pattern that provides indirect communication between the sender of a request and the object that can actually handle it. by giving more than object a chance to handle the request.
+
+A client submits a request to a *handler* which then decides if it can handle it. If it cannot, it will *pass on* the request to its successor, e.g. the next in the chain of responsibilities. And this continues until the request finally arrives at a concrete handler that can actually handle it. If none can (e.g. if the request arrives at the last link of the chain), that handler will know that the request can't be fulfilled and may reject it.
+
+For instance, say we're on a business trip and request approval for something expensive, like taking a business partner out to dinner. We'd then pass that request to an *approver*, which could be a manager. If that manager cannot approve it (since its incredibly expensive), the manager then *pass on* the request to the vice president. If he cannot approve it either, it finally arrives at the CEO who gladly approves it.
+
+To do this in C#, we would first create an interface called *IApprover*. We'd then make sure that the Manager, VicePresident and CEO also implement that interface.
+
+And then we combine them in a Linked-List fashion where the manager is passed a reference to the VicePresident, and the VicePresident is passed a reference to the CEO.
+
+I imagine they just pass a the request around to each other, and all of them simply return the value of their successor.
+
+They all implement a method, `RequestApproval` which returns a boolean. If one can't approve the purchase, he simply return the result of calling the same method on the successor:
+
+```csharp
+public class Request
+	{
+		public int Amount { get; set; }
+	}
+
+	public interface IApprover
+	{
+		bool RequestApproval(Request request);
+	}
+
+	public class Requester
+	{
+
+		private readonly IApprover _approver;
+		public Requester(IApprover approver)
+		{
+			_approver = approver;
+		}
+
+		public void Send(Request request)
+		{
+			WriteLine($"Is approved: {_approver.RequestApproval(request).ToString()}");
+		}
+	}
+
+	public class Manager: IApprover
+	{
+		private readonly IApprover _successor;
+		public Manager(IApprover successor)
+		{
+			_successor = successor;
+		}
+		public bool RequestApproval(Request request)
+		{
+			return request.Amount < 1000 || _successor.RequestApproval(request);
+		}
+	}
+
+	public class CEO : IApprover
+	{
+		public bool RequestApproval(Request request)
+		{
+			return request.Amount < 2000;
+		}
+	}
+```
+
+### Factory pattern
+<img src="assets/factory_pattern_uml_diagram.jpg" />
+**CREATIONAL DESIGN PATTERN**
+
+The factory pattern can create instances of objects without exposing the creation logic to the client. This also means that you could call, for instance `shapeFactory.CreateShape("circle")` to get a circle, without having to rely on all sorts of import statements.
+
+There are several ways to actually implement this. You could obviously wrap a huge `switch` statement inside the `CreateShape` method and manually create and return a new instance of the appropriate object based on the given string. If none exist, you could return null.
+
+But if you want this to be extensible, you can use **reflection** to actually have C# figure out of such a code exists and if so create a new instance and return it to the user. This works by looking into the assembly and figuring out if there actually exists a type with such a name:
+```csharp
+public class ShapeFactory
+{
+	public IShape CreateShape(string name)
+	{
+		var shapes = typeof(IShape).GetTypeInfo();
+		// Via linq
+		var shape = shapes.Assembly
+			.GetTypes()
+			.Where(t => t.Name.Equals(name))
+			.FirstOrDefault();
+
+		if (shape == null) return null;
+		return Something.CreateInstance(type) as IShape;
+	}
+}
+```
+
+
+
+
+
+## Exam question C04:
+*Explain the concepts of unit testing with examples in C#. You should cover concepts like mocks, stubs, and the dependency injection pattern.*
+
+## What is Testing
+Testing is the process of finding differences between the expected behavior specified by system models and the observed behavior of the implemented system.
+
+## What is Unit Tests
+Unit Tests are automated tests which in computer programming terms is a technique for testing individual bits and pieces of source code to determine if they act as intended. We want to perform very isolated testing here, even down to a specific branch of an object method.
+
+### Stubs vs Live testing
+In order to do so, we may need to "fill-in" some of the logic that the object under test depends on.
+
+For instance, if the method needs to perform a call do the database to fetch some persistent data and then performs some transformation on it, it would depend on access to a database.
+
+We could obviously just hook up a database connection and pass that on in the `Arrange` step of the test method.
+
+But that brings several disadvantages:
+- You'll be testing against a live environment.
+
+- There will be network delays.
+
+- You can't rule out the possibility that the database returns faulty data. It might have a broken implementation. In any case, if you want to ensure full isolation of test method, you need to be in control of the dependent objects as well.
+
+So what you do, then, is to provide a *dummy object* or a stub which is simply a placeholder for the real implementation.
+
+All we care about is that the stub returns the anticipated values when the method under test actually uses it. Also, by doing so, we can test the method in even more detail by altering the return values of the dependent functionality to see how the method responds to that.
+
+All of a sudden you can ask questions such as *"What happens if the database returns false here?"* and easily write a test for it.
+
+This, by the way, is a great example of the reason why programming to interfaces is so well-suited for unit testing. If the method under test depends on a specific implementation, we need to provide an instance of that implementation. But, if it depends on an interface, we can provide our own implementation of it with a stub.
+
+### Mocks
+The thing about stubs, though, is that they are immensely time-consuming to write. You may need to write hundreds of stubs, and especially if you do TDD, you will end up with much more stub classes than actual classes.
+
+To avoid this, we have this great concept of Mocks. These are smarter in the sense that they can auto-provide implementations of given interfaces with default values for everything using Reflection. This allows you to provide an implementation directly from the test method.
+
+But you can also directly affect the actual return values of the properties and methods of the mock simply by setting it up:
+```csharp
+var mock = new Mock<IFooService>();
+mock.Setup(m => m.Update(It.IsAny<Foo>())).Returns(true);
+```
+
+Here we say: *"When I invoke the Update method on the IFooService and gives it ANY instance of Foo, it will return true"*.
+
+And now we can pass an implementation of that interface to the object under test with the `mock.Object` property and see how the method behaves under these circumstances.
+
+### Dependency Injection
+But we can only do that because we're using dependency injection! If the object under test is responsible for setting up its own implementation dependencies, we won't be able to do this. The most obvious way to do it is simply by using constructor dependency injection; We simply pass-in the mock object. That's the TL;DR; of the concepts behind dependency injection.
+
+Typically, outside a test environment we'd then use an Inversion-of-Control container to constructor-inject concrete implementations of interfaces to instances of classes.
+
+### The Assert step
+So anyway, in the last step, the *Assert* phase, we then compare the result of the operation with the expectation. For instance,
+```csharp
+var result = ObjectUnderTest(mock.Object);
+Assert.AreEqual("Hello World", result);
+```
+
+### Full example
+So let's say we want to test a class `Foo` which implements an interface of type `IFoo` and expects an instance of an `IFooService`:
+```csharp
+public interface IFoo
+{
+	string Bar();
+}
+
+public interface IFooService
+{
+	bool Baz();
+}
+
+public class FooService: IFooService
+{
+	public bool Baz()
+	{
+		return true;
+	}
+}
+
+public class Foo: IFoo
+{
+	private readonly IFooService _fooService;
+
+	public Foo (IFooService fooService)
+	{
+		_fooService = fooService;
+	}
+
+	public string Bar()
+	{
+		return _fooService.Baz() ? "A" : "B";
+	}
+}
+```
+
+So now, lets' write a test method for it using Mocks:
+```csharp
+[Fact]
+public void Foo_when_FooService_returns_false_returns_B
+{
+	// Arrange
+	var mock = new Mock<IFooService>();
+	mock.Setup(m => m.Baz()).Returns(false);
+
+	// Act
+	var foo = new Foo(mock.Object);
+	var result = foo.Bar();
+
+	// Assert
+	Assert.AreEqual("B", result);
+}
+```
+
+So, as you can see, it now becomes incredibly easy to just switch out `false` with `true` in the Mock and Assert that the result is "A". This is why dependency injection and Mocks are fantastic together!
+
+
+
+
+
+
+
+
+
+
+
 ## Exam question C08:
 *Describe data binding and the MVVM model. Explain how MVVM relates to events, the Command pattern and the Observer pattern. Compare this architecture to the ASP.NET MVC architecture.*
 

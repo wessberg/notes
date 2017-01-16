@@ -208,7 +208,7 @@ Consequences:
 <img src="assets/bridge_pattern.png" />
 **STRUCTURAL DESIGN PATTERN**
 
-The bridge pattern provides a solution for dynamically substituting multiple realizations of the same interface for different users.
+The bridge pattern provides a solution for dynamically substituting multiple realizations of the same interface for different users. Its very similar to the Strategy pattern, except here the user doesn't know about (or at least determine) the actual implementation. (For instance, great for deciding for an Offline or Online strategy).
 
 **Bridge is something that could be used in the early stages of a project whereas Adapter is more focused on backwards compatibility**.
 
@@ -233,7 +233,7 @@ But:
 
 ## Strategy pattern
 **BEHAVIORAL DESIGN PATTERN**
-If we require dynamic switching between two or more implementations on runtime (for instance, Offline or Online backup) and also want to be able to deal with possible future extensions, the strategy pattern is the way to go.
+If we require dynamic switching between two or more implementations on runtime and also want to be able to deal with possible future extensions, the strategy pattern is the way to go.
 
 <img src="assets/strategy_pattern.png" />
 

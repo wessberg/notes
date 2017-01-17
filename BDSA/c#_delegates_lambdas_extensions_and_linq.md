@@ -97,8 +97,7 @@ public class MyClass
 			Action operations = () => WriteLine("Foo!");
 			operations += () => WriteLine("Bar!");
 
-			operations(); // Prints "Foo!";
-			operations(); // Prints "Bar!";
+			operations(); // Prints "Foo!" followed by "Bar!";
 		}
 	}
 ```

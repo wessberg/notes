@@ -558,6 +558,305 @@ So, as you can see, it now becomes incredibly easy to just switch out `false` wi
 
 
 
+## Exam Question C05:
+*Explain C# delegates, including how to use anonymous methods and lambda expressions to implement them.*
+
+Delegates are **addresses to methods**. But they are smarter than just being pointers as they are also type-safe.
+
+Delegates are used **when you want to pass methods around to other methods**.
+
+This allows us to simply say: *"the first argument must be a function that takes a number and returns a string"*.
+
+What makes delegates particularly smart is that you can pass lambda expressions directly to a parameter that is of a delegate type.
+
+So, for instance, if we declare a delegate type named `StringFromInt` that takes an `int` and returns a `string`, we can then expect an argument of type `StringFromInt` in a method like this:
+```csharp
+public class Program
+	{
+		public delegate string StringFromInt(int num);
+		public static void Main()
+		{
+			DoStuff(delegate (int num)
+			{
+				return num.ToString();
+			});
+		}
+
+		public static void DoStuff(StringFromInt callback)
+		{
+			var aString = callback(1);
+			WriteLine(aString);
+		}
+	}
+```
+When we invoke the method, we could then pass in an *anonymous* method is written with `delegate (int num) {body}`.
+
+But this could be made prettier with a lambda expression:
+
+```csharp
+public static void Main()
+{
+	DoStuff(num => num.ToString());
+}
+```
+
+Delegates are actually types on their own with a one-parameter constructor that takes a method or lambda expression that conforms to the signature of the delegate.
+For instance, you could write:
+```csharp
+StringFromInt method = new StringFromInt(num => num.ToString());
+```
+You could also just write:
+```csharp
+StringFromInt method = num => num.ToString();
+```
+
+Which is the short-hand version of the same.
+So, this is immensely powerful, in numerous ways.
+
+For instance, in asynchronous programming before `async/await` came along, you would typically do it by providing a callback delegate method to an asynchronous method. That would then be invoked when the results came in. For instance:
+```csharp
+BeginAsync("hello", result => {
+	WriteLine(result);
+});
+```
+
+Also, imagine a `Sort` method overload that takes in a Comparer delegate method that returns an `int`:
+```csharp
+var list = new List<int> { 3, 2, 1 };
+list.Sort((x, y) => x.CompareTo(y));
+
+foreach (var num in list) WriteLine(num);
+```
+
+.NET comes with a bunch of built-in delegate methods already. For instance we have the `IAction<T>` delegate which takes zero to many arguments and returns void. Or, we have a `Func<Ta, Tb>` which takes in something of type `Ta` and returns something of type `Tb`.
+
+### Multicast delegates
+We can also add more than one method to a delegate. This is called multicast delegates. For instance:
+
+```csharp
+Action operations = () => WriteLine("Foo");
+operations += () => WriteLine("Bar");
+
+operations(); // Prints "Foo" and then "Bar" on the next line.
+```
+
+This can be very useful if you want to perform indirect  one-to-many communication, for instance if you're implementing an event-based system where you want to dynamically add or remove handlers. When the delegate action is invoked, so is all the handlers that are attached to it.
+
+
+
+
+
+
+
+## Exam Question C06:
+*Explain the basic principles of generics and how IEnumerable relates to LINQ. Explain how LINQ relates to the var keyword and extension methods.*
+
+Generic types and methods are great on many levels. They make our programs more reusable, readable and more performant.
+
+With Generics, we can define classes, structs, interfaces or methods which can take in *some* type, `T` (or more), which we can optionally put some constraints on.
+
+This enables us to achieve parametric polymorphism in the sense that we can reuse the same class "template" or so to speak, to work with various types in a type-safe manner.
+
+For instance, say we want to provide a collection type that can be reused for any value or reference type. We would then go ahead and declare a `MyList<T>` ("MyList of T"):
+```csharp
+public class MyList<T>
+	{
+		private IList<T> _list { get; } = new List<T>();
+
+		public void Add(T something)
+		{
+			_list.Add(something);
+		}
+
+		public void Print()
+		{
+			foreach (var item in _list) WriteLine(item.ToString());
+		}
+	}
+```
+
+Then, from the client code, we would be able to instantiate a `MyList` instance with any type we want:
+```csharp
+var list = new MyList<int>();
+list.Add(1); // Okay!
+list.Add(false); // Nope.
+```
+
+If we hadn't gone from a generic approach, we would have to implement a `MyIntList` and `MyBoolList` and so on. Hence this allows for parametric polymorphism.
+
+### Multiple generic parameters
+We can provide more generic arguments, for instance to implement a key-value based collection, we'd do `MyCollection<TKey, TValue>`:
+```csharp
+public class Program
+	{
+
+		public static void Main()
+		{
+			var myCollection = new MyCollection<string, int>();
+			myCollection.Add("foo", 1);
+		}
+	}
+
+	public class MyCollection<TKey, TValue>
+	{
+
+		public void Add (TKey key, TValue value)
+		{
+			WriteLine($"{key.ToString()} is associated with value: {value.ToString()}");
+		}
+	}
+```
+
+The fact that it works with value types is also pretty fantastic on its own. Otherwise, we'd have to box and unbox values all the time which can be pretty expensive.
+
+For instance, if we used a normal `ArrayList`, which allows us to put whatever we want in it and sort of allows parameter polymorphism, it would be able to autobox the integer values we gave it, but when we took values out of it again, we'd have to cast it:
+```csharp
+var list = new ArrayList();
+list.Add(44); // Boxing - converts a value type to a reference type.
+
+int num = (int)list[0]; // unboxing - converts a reference type to a value type.
+```
+
+But it doesn't have to be the "wild-west". We can also declare constraints on the generic types with the `where` clause following the class signature:
+```csharp
+public class MyList<T> where T: ISomeInterface
+{
+}
+```
+
+This enables us to make sure that whatever we get as type for `T`, it will always conform to the `ISomeInterface` interface.
+
+
+### Language Integrated Query (LINQ)
+Alright, so moving on to LINQ or Language Integrated Query.
+
+LINQ integrates query syntax inside C#, making it possible to access different data sources with the same syntax.
+
+The query expression must begin with a `from` clause and end with a `select` or `group` clause.
+
+In between you can use `where`, `orderby`, `join`, `let` and additional `from` clauses.
+
+### Relation to `IEnumerable<T>`
+LINQ offers various extension methods for the `IEnumerable<T>` interface, which allows you to use the LINQ query extension methods across any collection that implements this interface.
+
+Because, LINQ *syntax* is just an easy way to perform operations with the LINQ extension methods, which by the way can do much more than the LINQ syntax allows for.
+For instance, you can do:
+```csharp
+IEnumerable<int> list = new List<int>();
+list.Where(x => x > 2);
+```
+
+But here we could also just do `var` in front of list and allow the C# compiler to infer the type, which would have been less code to write.
+
+`var` actually becomes a necessity during LINQ expressions. Imagine we write:
+```csharp
+var results = from p in Person
+where p.Age > 2
+select p;
+```
+
+Here, we *infer* the type of p.
+
+### Extension methods
+Alright, so I talked about the fact that LINQ provides extension methods to the generic `IEnumerable` interface.
+
+Extension methods make it possible to add new methods to a class that doesn't already offer the method at first without subclassing it and referencing it instead.
+
+The way to do that is to write a new class, and then in any public method of it, we can use the `this` keyword in front of the type of an argument:
+```csharp
+public static class StringExtension
+{
+	public static int GetWordCount(this string s) => s.split().Length;
+}
+```
+This enables you to to call `GetWordCount` on strings, which can be very useful when chaining method calls.
+
+
+
+
+
+
+## Exam Question C07
+*Explain ASP.NET Web API including how to implement REST-based web services, preferably with an example in C#.*
+
+We can use the ASP.NET Web API to build WebServices based on REST.
+So let's start with REST.
+
+### REST
+REST is great and is by far the most popular way to build distributed APIs right now.
+What makes REST so easy to grasp is the fact that it maps HTTP verbs such as POST, GET, PUT, DELETE to CRUD operations (CREATE, READ, UPDATE, DELETE) - in that order.
+
+Also, REST is always stateless whereas alternatives such as SOAP can be stateful.
+So, say you are querying the server for the first 10 items of an article. When you've seen them, you're then gonna want to fetch the 10 next articles. In REST, there is no such thing as the "next" 10 articles. It is completely stateless which is also one of the reasons why REST is so easy to use and implement.
+
+Instead, you're gonna want the client to pass, for instance, an offset/skip value as a query parameter to ask the API for the next articles.
+
+There is A LOT of discussion about what makes a beautiful REST-API, but I won't delve in to them here unless of course you want me to.
+
+### Back to ASP.NET Web API
+So anyway, lets delve into ASP.NET Web API. This allows us to easily build a web service.
+
+So, lets start with a simple version. Here, we could have a group of `Model` classes in the `Models` directory. For instance, lets say we have a `Book` model class. This one would simply contain getters and setters for the Id of the book (`int`), the Title of it (`string`) as well as the publisher (`string`).
+
+Now we could write a `IBooksRepository` interface which describes the operations that can be performed to on Books. For instance, we could add a new `Book`, get all books from a given author and whatever else we want. For now, lets say we keep this all in-memory.
+
+We could then write a concrete implementation of the `IBooksRepository`.
+Now, we have a simple model and a means to read from or to alter it.
+
+### Dependency Injection
+The reason why we want the repository to conform to an interface will be clear once we know why dependency injection is the coolest thing ever.
+
+Dependency Injection is a way for us to pass a concrete implementation of an interface to various components of our applications or services.
+
+The point is - instead of having the various components of your app depend on an implementation, instead let them depend on an interface. Then pass the actual implementation to them in the constructor.
+
+This is really awesome, because it allows us to very easily switch out an implementation. And it also makes our application very easily testable by allowing us to completely isolate the components under test by passing dummy objects of their dependencies to them in the constructor which beside giving us full control also allows us to very easily test how they behave depending on the behavior of their dependencies. But that's out of the scope of this. Feel free to ask if you want to know more about it, though.
+
+And what's great about The ASP.NET Web API is that it comes with an Inversion-of-Control Container for doing constructor dependency injection built-in.
+
+### Back to ASP
+Son in the `Startup.cs` file under `ConfigureServices`, we can our `BooksRepository` to the IoCContainer as service that should be dependency injected. If we do `services.AddSingleton<IBooksRepository, BooksRepository>()`, we will only create one instance for the lifetime of the process, but we could also go for `AddScoped` if we want it to live on for the lifetime of a request. Let's go with that for now.
+
+### Middleware
+Before getting into the controllers, we could also implement some Middleware, for instance Authentication middleware. Middleware in terms of ASP.NET is great because it can do some stuff with an in-going request before it is passed on the controllers. So, if we want to do JWT-based authentication, we could catch the request in some authentication-middleware, verify the token before passing the request on to the next middleware (or the request router itself).
+
+### Controllers
+Now, we can implement the actual Controllers which will handle the incoming requests.
+We can use `[Route]` attributes to let ASP.NET know which controller is responsible for which route.
+
+So lets write a `BooksController` that derives from `Controller` and place it in the `Controllers` folder. And then lets annotate the class with a `[Route("/api/[controller]")]` attribute. This tells ASP.NET, that if a request arrives with the following URI: `http[s]://<host>:<port>/api/books`, it should be handled by the class `BooksController`.
+
+Let's also make sure that it holds a `readonly` reference to an `IBooksRepository`. Remember, we already dependency inject a concrete implementation in the constructor, so lets handle it there.
+
+And lets also place an `[Authorize]` attribute on the class. This tells ASP that all methods within this class requires the request to be Authenticated. If they aren't, a 401 status code will simply be returned to the client.
+
+So now we're ready to write the actual controller methods. These should at the very least correspond to the CRUD-operations that should be able to be performed. For instance, let's write a `GetBooks` method that takes no arguments and returns all books in our collection. Let's annotate it with a `[HttpGet]` attribute to let ASP know, that this is where GET methods should be handled.
+
+Also, we should at all times return an `IActionResult` or a `Task<IActionResult>` in case we´re doing asynchronous lookups which we definitely should, by the way.
+
+We can respond to the client with Json by using the derived `Json()` method and passing in the collection of books we got from calling the appropriate method on the `IBooksRepository`.
+
+And so it goes from there. We can use the `Http[Get|Put|Post|Delete]` attributes to declare what part of the URL is actually an Id, for instance, and then pass that on to the method arguments upon invocation. For instance, if we receive a request on `/api/books/1`, we can declare our HttpGet attribute as `HttpGet("{id:int}")` and then expect and id of type `int` as the first argument to the method.
+
+We can also extract the body contents with the `[FromBody]` attribute which then pulls out the contents. If ASP can safely marshall the incoming JSON into an instance of `Book`, you can actually declare an input argument of type `Book` directly in the method signature:
+```csharp
+public async Task<IActionResult> CreateBook ([FromBody] Book book)
+{
+	var success = await _repository.SaveAsync(book);
+	return success ? Json(book) : BadRequest(ModelState);
+}
+```
+
+### Entity Framework
+So, this example was pretty simple:
+
+- We didn't consider persistent storage.
+
+- We didn't consider the fact that if a relational database was being used, we should probably use an Object Relational Mapper such as the Entity Framework to handle that.
+
+For instance, there is no concept of collections in relational databases, so here we would need to map the collections into associations. It would be preferable to instead implement the model as Entity Framework objects, derive from `DbContext` and add the models as `DbSet`s, but then these wouldn't be Json-serializable, so we wouldn't be able to easily send them over the network.
+
+Instead, what we need to provide a robust API is to consider the notion of Data Transfer Objects (DTOs) and Entity Framework models. We would then map between them. So, when we try to retrieve something from the repositories, we would select the EF-models, but then map them to DTOs before passing them back to the client and vice versa.
 
 
 

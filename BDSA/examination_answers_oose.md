@@ -2,8 +2,15 @@
 *Explain the processes and activities of requirement elicitation, specification, and documentation. You should cover topics like: (1) different software process models and their activities; (2) software qualities; (3) functional and non-functional requirements; (4) object-oriented software lifecycle activities and requirement elicitation; (5) UML and other documentation tool/methods for requirement specification. You may use your project as a case study.*
 
 Remember:
-- Use case diagrams
-- Scenarios
+- Functional model: use cases + scenarios
+- Object model: class diagrams
+- dynamic model: sequence diagrams + state machine diagrams
+- FURPS
+	-	Functionality
+	- Usability
+	- Reliability
+	- Performance
+	- Supportability
 
 So, requirements elicitation is the practice of collecting the requirements of a system from the client(s) and defining the purpose of the system.
 
@@ -107,6 +114,7 @@ Remember:
 - Functional model (use case + scenarios)
 - Analysis object model (class diagram)
 - Dynamic model (state machine, sequence diagrams)
+- Correct / Complete / Consistent / Verifiable
 
 During object-oriented analysis, we formalize the requirements specification obtained during requirements elicitation and build a model describing the application domain. We call this the **analysis model** and we want it to be:
 - **correct**, // TODO: Define when it is this.

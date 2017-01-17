@@ -117,10 +117,18 @@ Remember:
 - Correct / Complete / Consistent / Verifiable
 
 During object-oriented analysis, we formalize the requirements specification obtained during requirements elicitation and build a model describing the application domain. We call this the **analysis model** and we want it to be:
-- **correct**, // TODO: Define when it is this.
-- **complete**,
-- **consistent**, and
-- **verifiable**.
+- **correct**:
+	-	The requirements describe the features of the system and environment of interest to the client and the developer, but do not describe other unintended features. Does it accurately represent the system that the client needs and that the developers intend to build?
+- **complete**:
+	-	All features of interest are described by the requirements. Are all possible scenarios through the system represented in the requirements model? Also including exceptional behavior.
+- **consistent**:
+	-	No two requirements of the specification contradict each other. Does the requirements specification contradict itself somewhere?
+- **verifiable**:
+	-	Once the system is built, will repeatable tests be able to demonstrate that the system actually fulfills the requirements specification?
+		- For instance, consider the following non-verifiable requirements:
+			- *The product shall have a good user interface*. That is a non-verifiable requirement. How do we measure "good"?
+			- *The product shall be error free*. That is also non-verifiable. How do we know if there are no more errors?
+			- *The product shall respond to the user with 1 second for most cases*. What does "most cases" mean?
 
 Still having focus on the application also means that the client and end-users are usually also involved in this activity.
 

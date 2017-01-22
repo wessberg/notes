@@ -1,6 +1,124 @@
 # Indexing (in SQL)
 > Literature: RG 8.1,8.2,8.3,8.5,10.1-10.6
 
+### Clustered index vs Unclustered Index
+A Clustered index is sorted based on the key value of whatever column the index is set on. So if it was "age", the index would be sorted and stored in sorted order with the age value.
+
+On the contrary, unclustered indexes have a structure separate from the data it refers to. Instead it holds pointers to the actual data rows that holds the actual values.
+
+**There can only be one clustered index per table, typically the primary key**.
+
+# Book notes
+
+### File Organization
+A file organization is a method of arranging the records in a file when the file is stored on disk.
+Such an organization makes certain operations efficient but other operations expensive.
+
+### Indexing
+Indexing can help when we have to access a collection of records in multiple ways, in addition to efficiently supporting various kinds of selection.
+
+### Data on external storage
+A database management system stores vast quantities of data, and data must persist across program executions. Thus, data is stored on external storage devices such as disks and fetched into main memory as needed for processing.
+
+**The unit of information read from or written to disk is a page**.
+
+The cost of page I/O (the input from disk to main memory and output from memory to disk) dominates the cost of typical database operations, and database systems are carefully optimized to minimize this cost.
+
+So, if we read *several* pages in the order that they are stored in physically, we have to add that read-latency to *every* page we page through.
+
+#### Buffer manager
+The buffer manager is responsible for reading data into memory for processing as well as writing stuff to disk for persistent storage.
+
+### Disk space manager
+This one can grant more disk space to the DBMS if requested. This one keeps track of the pages in use by the file layer.
+
+### File organizations and Indexing
+#### Scans
+A *scan* operation allows us to step through all the records in a file one at a time.
+
+The *file layer* stores the records in a file in a collection of disk pages.
+
+It keeps track of pages allocated to each file, and as records are inserted into and deleted from the file, it also tracks available space within pages allocated to the file.
+
+#### Heap files
+The simplest file structure is an **unordered file**, or *heap file*.
+
+Records in such a file are stored in random order across the pages of the file.
+
+A heap file organization supports retrieval of all records, or retrieval of a particular record specified by its record ID.
+
+## Indexes
+An *index* is a data structure that organizes data records on disk to optimize certain kinds of retrieval operations.
+
+An index allows us to efficiently retrieve all records that satisfy search conditions on the search key fields of the index.
+
+We could store all records of employees in a file organized as an index on employee age, for example. We could then create an auxiliary index file based on salary, to speed up queries involving salary.
+
+### Clustered Indexes
+When a file is organized so that the ordering of data records is the same as or close to the ordering of data entries in some index, we say that the index is *clustered*. Otherwise, it is an *unclustered* index.
+
+### Primary and Secondary Indexes
+An index on a set of fields that includes the *primary key* is called a primary index.
+
+All other indexes are called *secondary indexes*.
+
+A primary index is guaranteed not to contain duplicates (obviously, since primary keys are always unique), while secondary indexes *can* contain duplicates.
+
+That doesn't mean that 2 indexes are the same, it means that the search key field *associated* with the index are the same.
+
+### Index data structures
+There are typically hash-based and tree-based indexing techniques.
+
+### Hash-Based Indexing
+
+With hash-based indexing, we can quickly find records that have a given search key value. So, if a file of, say, "Employee" records is hashed on a column named *name*, we can retrieve all records about, say, "Joe" just by searching for it - very fast.
+
+In this approach, the records in a file are grouped in *buckets*.
+
+#### Buckets
+A bucket consists of a *primary page* and possibly additional pages linked in a chain.
+
+The bucket to which a specific record belongs can be determined by applying a hash function to the search key. We then immediately know about that bucket and the primary page for it.
+
+All in all, this happened in about one or two disk I/O's, so that's pretty ok!
+
+#### Insertions
+When we insert stuff with Hash-Based Indexing, the record is inserted into the appropriate bucket.
+
+**Hash-Based Indexing are bad for range selections, but great for equality selections!**.
+
+### Tree-Based Indexing
+Here we arrange data entries in a tree-like data structure **in sorted order by search key value**.
+
+We can then reap the same awesome benefits from BSTs as we know. If we index on *age*, for example, we could then check if the search value is less than or greater than the value of the current node, and go either left or right depending on the comparison - until we find the record(s) with that age value.
+
+We obviously want to go for a BBST if possible. The book is very satisfied with B+ trees.
+
+**Tree-Based Indexing are great for range selections AND equality selections!**.
+
+### Indexes and performance tuning
+In general, an index supports efficient retrieval of data entries that satisfy a given selection condition.
+
+#### Index-Only evaluations
+These are evaluations that doesn't need to look "into" the data, but are perfectly satisfied with just looking at the indexes.
+
+For instance, if we have an index on *age* and we want to compute the average age of employees, the DBMS can do this by simply examining the data entries in the index. This is known as an *index-only evaluation*.
+
+### Composite Search Keys
+The search key for an index can contain several fields. Such keys are called *composite search keys* or *concatenated keys*.
+
+## Tree indexing
+B+ trees are the most widely used index structure because it adjusts well to changes and supports both equality and range queries.
+
+
+
+
+
+
+
+
+# Lecture notes
+
 ### Nice-to-know
 Sequential memory access is faster than random accesses in memory! Another reason to keep your data sorted.
 

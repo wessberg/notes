@@ -1,0 +1,463 @@
+LUFTHANSA TABLE CASE STUDY
+--------------------------
+Part 2: Performance tuning
+
+Rasmus Pagh, October 7, 2015
+
+
+We have the following normalized tables:
+
++-----------------+
+| Tables_in_cargo |
++-----------------+
+| flights         | ID,AL,FNR,SNR,DEP,ARR,STD,STA,ADC,DAY,ACTYPE,START_OP,END_OP
+| acgroup         | ag,agfullname
+| aircraft        | actype,actypefullname,ag
+| airport         | airport,country
+| country         | country,region
+| ddc             | ddc,id
++-----------------+
+
+
+-- Figure out if IDs are consecutive
+------------------------------------
+
+mysql> select count(*) from flights f1, flights f2 where f1.id+1 = f2.id;
++----------+
+| count(*) |
++----------+
+|    25340 |
++----------+
+1 row in set (40.95 sec)
+
+mysql> show indexes from flights;
+Empty set (0.00 sec)
+
+mysql> alter table flights add primary key (id);
+Query OK, 0 rows affected (3.62 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> show indexes from flights;
++---------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| Table   | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
++---------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| flights |          0 | PRIMARY  |            1 | id          | A         |       25532 |     NULL | NULL   |      | BTREE      |         |               |
++---------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+1 row in set (0.00 sec)
+
+mysql> select count(*) from flights f1, flights f2 where f1.id+1 = f2.id;
++----------+
+| count(*) |
++----------+
+|    25340 |
++----------+
+1 row in set (0.47 sec)
+
+mysql> select count(*) from flights;
++----------+
+| count(*) |
++----------+
+|    25342 |
++----------+
+1 row in set (0.02 sec)
+--- Two IDs have no successor, it seems.
+
+
+-- Find flights from CPH to FRA without a composite index (index intersection)
+------------------------------------------------------------------------------
+
+mysql> select count(*) from flights where dep='CPH' and arr='FRA';
++----------+
+| count(*) |
++----------+
+|       61 |
++----------+
+1 row in set (0.02 sec)
+
+mysql> explain select count(*) from flights where dep='CPH' and arr='FRA';
++----+-------------+---------+------+---------------+------+---------+------+-------+-------------+
+| id | select_type | table   | type | possible_keys | key  | key_len | ref  | rows  | Extra       |
++----+-------------+---------+------+---------------+------+---------+------+-------+-------------+
+|  1 | SIMPLE      | flights | ALL  | NULL          | NULL | NULL    | NULL | 25532 | Using where |
++----+-------------+---------+------+---------------+------+---------+------+-------+-------------+
+1 row in set (0.00 sec)
+
+mysql> create index depIdx on flights(dep);
+Query OK, 0 rows affected (0.63 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> create index arrIdx on flights(arr);
+Query OK, 0 rows affected (0.67 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> select count(*) from flights where dep='CPH' and arr='FRA';
++----------+
+| count(*) |
++----------+
+|       61 |
++----------+
+1 row in set (0.02 sec)
+
+mysql> explain select count(*) from flights where dep='CPH' and arr='FRA';
++----+-------------+---------+-------------+---------------+---------------+---------+------+------+----------------------------------------------------------+
+| id | select_type | table   | type        | possible_keys | key           | key_len | ref  | rows | Extra                                                    |
++----+-------------+---------+-------------+---------------+---------------+---------+------+------+----------------------------------------------------------+
+|  1 | SIMPLE      | flights | index_merge | depIdx,arrIdx | depIdx,arrIdx | 6,6     | NULL |   29 | Using intersect(depIdx,arrIdx); Using where; Using index |
++----+-------------+---------+-------------+---------------+---------------+---------+------+------+----------------------------------------------------------+
+1 row in set (0.00 sec)
+
+
+
+
+-- Find flights from CPH to FRA with a composite index
+------------------------------------------------------
+
+mysql> create index depArrIdx on flights(dep,arr);
+Query OK, 0 rows affected (0.35 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> select count(*) from flights where dep='CPH' and arr='FRA';
++----------+
+| count(*) |
++----------+
+|       61 |
++----------+
+1 row in set (0.00 sec)
+
+mysql> explain select count(*) from flights where dep='CPH' and arr='FRA';
++----+-------------+---------+------+-------------------------+-----------+---------+-------------+------+--------------------------+
+| id | select_type | table   | type | possible_keys           | key       | key_len | ref         | rows | Extra                    |
++----+-------------+---------+------+-------------------------+-----------+---------+-------------+------+--------------------------+
+|  1 | SIMPLE      | flights | ref  | depIdx,arrIdx,depArrIdx | depArrIdx | 12      | const,const |   61 | Using where; Using index |
++----+-------------+---------+------+-------------------------+-----------+---------+-------------+------+--------------------------+
+1 row in set (0.00 sec)
+
+
+
+
+-- Are there any overlapping time periods for the same flight number and actype? (Lack of suitable index)
+---------------------------------------------------------------------------------------------------------
+
+mysql> select count(*) from flights f1,flights f2 where f1.id!=f2.id and f1.fnr=f2.fnr and f1.actype=f2.actype and f1.start_op<f2.end_op and f1.end_op>f2.start_op;
+^CCtrl-C -- sending "KILL QUERY 1149" to server ...
+Ctrl-C -- query aborted.
+ERROR 1317 (70100): Query execution was interrupted
+
+mysql> explain select count(*) from flights f1,flights f2 where f1.id!=f2.id and f1.fnr=f2.fnr and f1.actype=f2.actype and f1.start_op<f2.end_op and f1.end_op>f2.start_op;
++----+-------------+-------+------+---------------+------+---------+------+-------+--------------------------------+
+| id | select_type | table | type | possible_keys | key  | key_len | ref  | rows  | Extra                          |
++----+-------------+-------+------+---------------+------+---------+------+-------+--------------------------------+
+|  1 | SIMPLE      | f1    | ALL  | NULL          | NULL | NULL    | NULL | 25487 |                                |
+|  1 | SIMPLE      | f2    | ALL  | NULL          | NULL | NULL    | NULL | 25487 | Using where; Using join buffer |
++----+-------------+-------+------+---------------+------+---------+------+-------+--------------------------------+
+2 rows in set (0.00 sec)
+
+-- MySQL cannot do Index-nested loop join and falls back on nested loop join, a naive "try all pairs" approach.
+
+mysql> create index fnridx on flights(fnr,start_op,end_op);
+Query OK, 0 rows affected (0.74 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> select count(*) from flights f1,flights f2 where f1.id!=f2.id and f1.fnr=f2.fnr and f1.actype=f2.actype and f1.start_op<f2.end_op and f1.end_op>f2.start_op;
++----------+
+| count(*) |
++----------+
+|   190644 |
++----------+
+1 row in set (2.31 sec)
+
+mysql> explain select count(*) from flights f1,flights f2 where f1.id!=f2.id and f1.fnr=f2.fnr and f1.actype=f2.actype and f1.start_op<f2.end_op and f1.end_op>f2.start_op;
++----+-------------+-------+------+---------------+--------+---------+--------------+-------+-------------+
+| id | select_type | table | type | possible_keys | key    | key_len | ref          | rows  | Extra       |
++----+-------------+-------+------+---------------+--------+---------+--------------+-------+-------------+
+|  1 | SIMPLE      | f1    | ALL  | fnridx        | NULL   | NULL    | NULL         | 25487 |             |
+|  1 | SIMPLE      | f2    | ref  | fnridx        | fnridx | 8       | cargo.f1.FNR |   127 | Using where |
++----+-------------+-------+------+---------------+--------+---------+--------------+-------+-------------+
+2 rows in set (0.00 sec)
+
+
+
+-- How many flights two years ago today departing from South America? (Join order)
+----------------------------------------------------------------------------------
+
+mysql> select count(*) from flights,country,airport where dep=airport and airport.country=country.country and start_op <= '2010-10-12' and end_op >= '2010-10-12' and region='SA';
++----------+
+| count(*) |
++----------+
+|       17 |
++----------+
+1 row in set (0.02 sec)
+
+mysql> create index depidx on flights(dep,start_op,end_op);
+Query OK, 0 rows affected (2.41 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> create index countryidx on airport(country,airport);
+Query OK, 0 rows affected (0.24 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> explain select count(*) from flights,country,airport where dep=airport and airport.country=country.country and start_op <= '2011-10-11' and end_op >= '2011-10-11' and region='SA';
++----+-------------+---------+------+--------------------+------------+---------+-----------------------+------+--------------------------+
+| id | select_type | table   | type | possible_keys      | key        | key_len | ref                   | rows | Extra                    |
++----+-------------+---------+------+--------------------+------------+---------+-----------------------+------+--------------------------+
+|  1 | SIMPLE      | country | ALL  | PRIMARY            | NULL       | NULL    | NULL                  |  104 | Using where              |
+|  1 | SIMPLE      | airport | ref  | PRIMARY,countryidx | countryidx | 6       | cargo.country.country |    1 | Using where; Using index |
+|  1 | SIMPLE      | flights | ref  | depidx             | depidx     | 6       | cargo.airport.airpor  |  127 | Using where; Using index |
++----+-------------+---------+------+--------------------+------------+---------+-----------------------+------+--------------------------+
+3 rows in set (0.00 sec)
+
+mysql> select count(*) from flights,country,airport where dep=airport and airport.country=country.country and start_op <= '2010-10-11' and end_op >= '2010-10-11' and region='SA';
++----------+
+| count(*) |
++----------+
+|       17 |
++----------+
+1 row in set (0.00 sec)
+
+
+
+-- Find national flights (denormalization)
+------------------------------------------
+
+mysql> select count(*) from flights, airport c1, airport c2 where dep=c1.airport and arr=c2.airport and c1.country=c2.country;
++----------+
+| count(*) |
++----------+
+|     7276 |
++----------+
+1 row in set (1.25 sec)
+
+mysql> explain select count(*) from flights, airport c1, airport c2 where dep=c1.airport and arr=c2.airport and c1.country=c2.country;
++----+-------------+---------+-------+--------------------+------------+---------+------------------+------+--------------------------+
+| id | select_type | table   | type  | possible_keys      | key        | key_len | ref              | rows | Extra                    |
++----+-------------+---------+-------+--------------------+------------+---------+------------------+------+--------------------------+
+|  1 | SIMPLE      | c1      | index | PRIMARY,countryidx | countryidx | 11      | NULL             |  374 | Using index              |
+|  1 | SIMPLE      | c2      | ref   | PRIMARY,countryidx | countryidx | 6       | cargo.c1.country |    1 | Using where; Using index |
+|  1 | SIMPLE      | flights | ref   | depidx             | depidx     | 6       | cargo.c1.airport |   72 | Using where              |
++----+-------------+---------+-------+--------------------+------------+---------+------------------+------+--------------------------+
+3 rows in set (0.00 sec)
+
+mysql> create index arrdepidx on flights(arr,dep);
+Query OK, 0 rows affected (0.66 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> explain select count(*) from flights, airport c1, airport c2 where dep=c1.airport and arr=c2.airport and c1.country=c2.country;
++----+-------------+---------+-------+--------------------+------------+---------+-----------------------------------+------+--------------------------+
+| id | select_type | table   | type  | possible_keys      | key        | key_len | ref                               | rows | Extra                    |
++----+-------------+---------+-------+--------------------+------------+---------+-----------------------------------+------+--------------------------+
+|  1 | SIMPLE      | c1      | index | PRIMARY,countryidx | countryidx | 11      | NULL                              |  374 | Using index              |
+|  1 | SIMPLE      | c2      | ref   | PRIMARY,countryidx | countryidx | 6       | cargo.c1.country                  |    1 | Using where; Using index |
+|  1 | SIMPLE      | flights | ref   | depidx,arrdepidx   | arrdepidx  | 12      | cargo.c2.airport,cargo.c1.airport |  127 | Using where; Using index |
++----+-------------+---------+-------+--------------------+------------+---------+-----------------------------------+------+--------------------------+
+3 rows in set (0.00 sec)
+
+mysql> select count(*) from flights, airport c1, airport c2 where dep=c1.airport and arr=c2.airport and c1.country=c2.country;
++----------+
+| count(*) |
++----------+
+|     7276 |
++----------+
+1 row in set (0.04 sec)
+
+
+-- For even better performance, denormalize
+
+mysql> alter table flights add column depc varchar(3);
+Query OK, 25342 rows affected (2.75 sec)
+Records: 25342  Duplicates: 0  Warnings: 0
+
+mysql> alter table flights add column arrc varchar(3);
+Query OK, 25342 rows affected (2.81 sec)
+Records: 25342  Duplicates: 0  Warnings: 0
+
+mysql> update flights set depc = (SELECT country FROM airport WHERE airport.airport=flights.dep);
+Query OK, 25342 rows affected (2.38 sec)
+Rows matched: 25342  Changed: 25342  Warnings: 0
+
+mysql> update flights set arrc = (SELECT country FROM airport WHERE airport.airport=flights.arr);
+Query OK, 25342 rows affected (3.33 sec)
+Rows matched: 25342  Changed: 25342  Warnings: 0
+
+mysql> create index ctryidx on flights(arrc,depc);
+Query OK, 0 rows affected (0.55 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> select count(*) from flights where arrc=depc;
++----------+
+| count(*) |
++----------+
+|     7276 |
++----------+
+1 row in set (0.01 sec)
+
+
+
+-- Correlated subqueries: Flights departing as another is arriving
+------------------------------------------------------------------
+
+mysql> select * from flights f1 where std in (select sta from flights f2 where f1.dep=f2.arr);
+^CCtrl-C -- sending "KILL QUERY 1154" to server ...
+Ctrl-C -- query aborted.
+ERROR 1317 (70100): Query execution was interrupted
+
+mysql> explain select * from flights f1 where std in (select sta from flights f2 where f1.dep=f2.arr);
++----+--------------------+-------+------+---------------+------+---------+------+-------+-------------+
+| id | select_type        | table | type | possible_keys | key  | key_len | ref  | rows  | Extra       |
++----+--------------------+-------+------+---------------+------+---------+------+-------+-------------+
+|  1 | PRIMARY            | f1    | ALL  | NULL          | NULL | NULL    | NULL | 25493 | Using where |
+|  2 | DEPENDENT SUBQUERY | f2    | ALL  | NULL          | NULL | NULL    | NULL | 25493 | Using where |
++----+--------------------+-------+------+---------------+------+---------+------+-------+-------------+
+2 rows in set (0.00 sec)
+
+mysql> create index arridx on flights(arr,sta);
+Query OK, 0 rows affected (0.58 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> explain select * from flights f1 where std in (select sta from flights f2 where f1.dep=f2.arr);
++----+--------------------+-------+------+---------------+--------+---------+-------------------+-------+--------------------------+
+| id | select_type        | table | type | possible_keys | key    | key_len | ref               | rows  | Extra                    |
++----+--------------------+-------+------+---------------+--------+---------+-------------------+-------+--------------------------+
+|  1 | PRIMARY            | f1    | ALL  | NULL          | NULL   | NULL    | NULL              | 25493 | Using where              |
+|  2 | DEPENDENT SUBQUERY | f2    | ref  | arridx        | arridx | 13      | cargo.f1.DEP,func |   127 | Using where; Using index |
++----+--------------------+-------+------+---------------+--------+---------+-------------------+-------+--------------------------+
+2 rows in set (0.01 sec)
+
+mysql> select * from flights f1 where std in (select sta from flights f2 where f1.dep=f2.arr);
+...
+11530 rows in set (0.29 sec)
+
+mysql> select count(distinct f1.id) from flights f1, flights f2 where f1.std=f2.sta and f1.dep=f2.arr;
++-----------------------+
+| count(distinct f1.id) |
++-----------------------+
+|                 11530 |
++-----------------------+
+1 row in set (0.32 sec)
+
+-- Is MySQL smart enough to use the following index?
+
+mysql> create index perfidx on flights(dep,arr,sta,std);
+Query OK, 0 rows affected (0.70 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> explain select count(distinct f1.id) from flights f1, flights f2 where f1.std=f2.sta and f1.dep=f2.arr;
++----+-------------+-------+-------+----------------+---------+---------+---------------------------+-------+--------------------------+
+| id | select_type | table | type  | possible_keys  | key     | key_len | ref                       | rows  | Extra                    |
++----+-------------+-------+-------+----------------+---------+---------+---------------------------+-------+--------------------------+
+|  1 | SIMPLE      | f1    | index | depidx,perfidx | perfidx | 26      | NULL                      | 25493 | Using index              |
+|  1 | SIMPLE      | f2    | ref   | arridx         | arridx  | 13      | cargo.f1.DEP,cargo.f1.STD |   127 | Using where; Using index |
++----+-------------+-------+-------+----------------+---------+---------+---------------------------+-------+--------------------------+
+2 rows in set (0.00 sec)
+
+-- Not really. Just uses it to retrieve values...
+
+
+
+-- "Correlated" subquery 2: Stuck flights
+-----------------------------------------
+
+select count(*) from flights where arr not in (select dep from flights);
+^CCtrl-C -- sending "KILL QUERY 1154" to server ...
+Ctrl-C -- query aborted.
+ERROR 1317 (70100): Query execution was interrupted
+
+mysql> explain select count(*) from flights where arr not in (select dep from flights);
++----+--------------------+---------+------+---------------+------+---------+------+-------+-------------+
+| id | select_type        | table   | type | possible_keys | key  | key_len | ref  | rows  | Extra       |
++----+--------------------+---------+------+---------------+------+---------+------+-------+-------------+
+|  1 | PRIMARY            | flights | ALL  | NULL          | NULL | NULL    | NULL | 25423 | Using where |
+|  2 | DEPENDENT SUBQUERY | flights | ALL  | NULL          | NULL | NULL    | NULL | 25423 | Using where |
++----+--------------------+---------+------+---------------+------+---------+------+-------+-------------+
+2 rows in set (0.00 sec)
+
+-- Community edition of MySQL still does not recognize that the subquery could be cached...
+-- "Bug does not appear in any released 5.6.x version."
+
+mysql> create index depidx on flights(dep);
+Query OK, 0 rows affected (0.29 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> explain select count(*) from flights where arr not in (select dep from flights);
++----+--------------------+---------+----------------+---------------+--------+---------+------+-------+------------------------------------+
+| id | select_type        | table   | type           | possible_keys | key    | key_len | ref  | rows  | Extra                              |
++----+--------------------+---------+----------------+---------------+--------+---------+------+-------+------------------------------------+
+|  1 | PRIMARY            | flights | ALL            | NULL          | NULL   | NULL    | NULL | 25423 | Using where                        |
+|  2 | DEPENDENT SUBQUERY | flights | index_subquery | depidx        | depidx | 6       | func |   254 | Using index; Full scan on NULL key |
++----+--------------------+---------+----------------+---------------+--------+---------+------+-------+------------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> select count(*) from flights where arr not in (select dep from flights);
++----------+
+| count(*) |
++----------+
+|      163 |
++----------+
+1 row in set (0.14 sec)
+
+
+
+-- Find long flights (15 hours or more)
+---------------------------------------
+
+mysql> select std, sta from flights limit 1;
++------+------+
+| std  | sta  |
++------+------+
+| 610  | 720  |
++------+------+
+1 row in set (0.00 sec)
+
+-- Problem: 100 * hour + minute format. Cannot simply subtract times. 720-610=110 is ok, but 720-630=090 is not.
+-- Besides converting into Date types, a solution is to compute time in minutes since midnight:
+
+mysql> select std, sta, 60*(std div 100)+std%100 as stdm, 60*(sta div 100)+sta%100 as stam from flights limit 1;
++------+------+------+------+
+| std  | sta  | stdm | stam |
++------+------+------+------+
+| 610  | 720  |  370 |  440 |
++------+------+------+------+
+1 row in set (0.00 sec)
+
+mysql> select id,std, sta from flights where 60*(sta div 100 - std div 100)+(sta % 100 - std%100)>900;
++-------+------+------+
+| id    | std  | sta  |
++-------+------+------+
+| 13920 | 100  | 1800 |
+...
++-------+------+------+
+98 rows in set (0.05 sec)
+
+mysql> alter table flights add column duration int;
+Query OK, 25342 rows affected (3.99 sec)
+Records: 25342  Duplicates: 0  Warnings: 0
+
+mysql> update flights set duration = 60*(sta div 100 - std div 100)+(sta % 100 - std%100);
+Query OK, 25342 rows affected (1.91 sec)
+Rows matched: 25342  Changed: 25342  Warnings: 0
+
+mysql> create index duridx on flights(duration);
+Query OK, 0 rows affected (0.57 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> select id,std, sta from flights where duration>900;
++-------+------+------+
+| id    | std  | sta  |
++-------+------+------+
+| 15596 | 245  | 1750 |
+...
+| 16022 | 5    | 2330 |
++-------+------+------+
+98 rows in set (0.27 sec)
+
+-- Hmm... Slower first time around, probably because index was on disk. Try another query:
+mysql> select id,std, sta from flights where duration>840;
+
++-------+------+------+
+| id    | std  | sta  |
++-------+------+------+
+| 15664 | 120  | 1530 |
+...
+| 16022 | 5    | 2330 |
++-------+------+------+
+129 rows in set (0.00 sec)
+

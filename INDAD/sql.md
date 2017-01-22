@@ -244,3 +244,116 @@ WHERE cpr >= all (
 		WHERE Takes.course = Class.course
 	);
 	```
+
+## Example questions and answers #1
+
+### Schema
+
+*professor(profname, deptname)
+department(deptname, building)
+committee(commname, profname)*
+
+### Questions and answers
+
+1. Find all the professors who are in any one of the committees that professor Piper is in.
+
+```sql
+SELECT DISTINCT B.profname
+FROM committee A, committee B
+WHERE A.profname = 'Piper' AND B.commname = A.commname
+```
+
+or
+```sql
+SELECT DISTINCT profname
+FROM committee
+WHERE commname IN
+        (SELECT commname
+         FROM committee
+         WHERE profname = 'Piper')
+```
+
+2. Find all the professors who are in at least all those committees that professor Piper is in.
+```sql
+SELECT DISTINCT B.profname
+FROM committee B
+WHERE NOT EXISTS
+          ( (SELECT commname
+              FROM committee A
+              WHERE profname = 'Piper')
+           EXCEPT (eller -, afhængigt af databasen)
+           (SELECT commname
+            FROM committee A
+            WHERE A.profname = B.profname) )
+```
+
+3. Find all the professors who have not offices in any of those buildings that Professor Piper has offices in.
+```sql
+SELECT DISTINCT P.profname
+FROM professor P
+WHERE NOT EXISTS
+      ( (SELECT building
+         FROM department D
+         WHERE P.deptname = D.deptname )
+        INTERSECT
+       (SELECT building
+        FROM department D1, professor P1
+        WHERE  P1.profname = 'Piper' AND P1.deptname = D1.deptname) )
+```
+
+## Example questions and answers #2
+
+### Schema
+<img src="assets/sql_schemas.png" />
+
+### Questions and solutions
+
+1.1
+
+Write an SQL query that returns the names of suspects for murders on locations owned by the Queen. Make
+sure that your query returns each such person only once.
+
+Answer:
+```sql
+SELECT DISTINCT suspect
+FROM account a , crime c , location l
+WHERE a.crimeId = c.id
+AND c.type = ’murder’
+AND l.owner = ’Queen’
+AND l.lName = c.location;
+```
+
+1.2
+Write an SQL query that returns total size (sizeSf) of the real estate (locations) owned by who owns the most
+real estate (in terms of total size of locations owned by this person).
+
+Answer:
+
+```sql
+SELECT DISTINCT sum (sizeSf)
+FROM location
+GROUP BY owner
+HAVING sum (sizeSf) = (SELECT max(sumSize)
+FROM (
+	SELECT sum (sizeSf) AS sumSize
+	FROM location
+	GROUP BY owner ) ttlPerOwner );
+```
+
+
+1.3
+Write a query that returns pairs of suspects that have provided account suspecting each other of the same crime,
+e.g., in the example instance Bob is suspecting Peter to be the murderer of Alice while at the same time Peter
+is suspecting Bob to be her murderer. Make sure to return each such pair only once. Hint: (Bob,Peter) and
+(Peter,Bob) are the same pair of people.
+
+Answer:
+```sql
+SELECT DISTINCT l.witness , l.suspect
+FROM account l , account r
+WHERE l.crimeId = r.crimeId
+AND l.witness = r.suspect
+AND l.suspect = r.witness
+AND l.witness < r.suspect;
+```
+DISTINCT is needed here, because there may be multiple crimes that two persons are accusing each other of.

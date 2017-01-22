@@ -219,3 +219,6 @@ We assume that there is an index on the column that is part of the logical predi
 Here we lock the index *page* that contains all tuples that satisfies the logical predicate.
 
 So, it does the same thing, but more efficiently.
+
+### Isolation levels
+<img src="assets/isolation_levels.png" />

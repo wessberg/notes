@@ -71,13 +71,197 @@ There are some variations:
 Each relation in BCNF is also in 3NF, every relation in 3NF is also in 2NF, and every relation in 2NF is also in 1NF.
 
 ### First normal form (1NF)
-**A relation is in *first normal form* is every field contains only atomic values - that is, no lists or sets.**
+**A relation is in *first normal form* is every field contains only atomic values**.
 
-This, for example, is **not** in 1NF:
+Precisely:
+
+1. No duplicate columns in a single table.
+
+2. Each column has single value (i.e. there is no group of values or array).
+
+3. Each row should be identified by unique key (A Primary Key).
+
+So, if you had stuff like this:
+<table>
+	<tr>
+		<td><strong>Name</strong></td>
+		<td><strong>Email</strong></td>
+	</tr>
+	<tr>
+		<td>John</td>
+		<td>john@gmail.com, john@hotmail.com</td>
+	</tr>
+</table>
+
+That would not be in 1NF, since the "email" field holds several values.
+
+When we say "duplicate" columns, we mean columns that refer to the same data.
+For example, if we had:
+
+<table>
+	<tr>
+		<td><strong>Name</strong></td>
+		<td><strong>Class A</strong></td>
+		<td><strong>Class B</strong></td>
+		<td><strong>Class C</strong></td>
+	</tr>
+	<tr>
+		<td>John</td>
+		<td>MODIS</td>
+		<td>BDSA</td>
+		<td>INDAD</td>
+	</tr>
+</table>
+
+We would have duplicate columns. So instead, we can break it up:
+
+<table>
+	<tr>
+		<td><strong>Name</strong></td>
+		<td><strong>Class</strong></td>
+	</tr>
+	<tr>
+		<td>John</td>
+		<td>MODIS</td>
+	</tr>
+	<tr>
+		<td>John</td>
+		<td>BDSA</td>
+	</tr>
+	<tr>
+		<td>John</td>
+		<td>INDAD</td>
+	</tr>
+</table>
+
+Which respects the two first properties of 1NF, but now we have rows that cannot be uniquely identified by a primary key!
+So we need to also compute a primary key on the *name* and *class* combination (or introduce an "id" field that is a primary key).
+
+*Now* we're golden.
+
+Another example of stuff that is **not** in 1NF:
 <img src="assets/1nf.png" />
 
+### Second normal form
+To be in second form, the following requirements must be met:
+
+1. Table should be in First Normal Form.
+
+2. There should be no partial dependency between non-key attributes and composite key. A partial dependency occurs when a non-key attribute is dependent on only a part of the (composite) key.
+
+3. There should be no subset of data that comes with multiple rows in a table. Place that data into different table.
+
+4. Define relationships among the new tables and the base table using foreign key.
+
+So, if we had this:
+<table>
+	<tr>
+		<td><strong>Name</strong></td>
+		<td><strong>Class</strong></td>
+		<td><strong>Teacher</strong></td>
+	</tr>
+	<tr>
+		<td>John</td>
+		<td>MODIS</td>
+		<td>Alice</td>
+	</tr>
+	<tr>
+		<td>John</td>
+		<td>BDSA</td>
+		<td>Alice</td>
+	</tr>
+	<tr>
+		<td>John</td>
+		<td>INDAD</td>
+		<td>Bob</td>
+	</tr>
+</table>
+
+We would violate the third property of 2NF since Alice will occur in multiple rows (and so will the student, John)
+Instead, we would be better off by having a "Student" and "Teacher" table, each with a primary key on a "studentId" and "teacherId" column and refer to the foreign keys instead.
+
+But then also notice the second property. We have a primary key on *name* and *class*, but *Teacher* is functionally dependent on *class*, wouldn't you say? Wouldn't we get the same teacher whenever we have a class? Here, *Class -> Teacher*, but **not** *name -> Teacher*, right?
+
+So, in other words, teacher is partially dependent on the composite primary key. Partially because it is on dependent on half of it, the class. So we also need to break *Teacher* out to have 2NF. So by doing that and referring to the primary key of a new Teacher table as the foreign key of the *teacherId* column in the table, we're golden.
+
+### Third Normal Form
+Third normal form must meet the following criteria:
+
+1. Table should be in Second Normal Form.
+
+2. No non-key column should depend on other non-key column or has no transitive functional dependency.
+
+So, imagine this:
+<table>
+	<tr>
+		<td><strong>Class</strong></td>
+		<td><strong>Teacher</strong></td>
+	</tr>
+	<tr>
+		<td>MODIS<</td>
+		<td>Alice</td>
+	</tr>
+	<tr>
+		<td>BDSA<</td>
+		<td>Bob</td>
+	</tr>
+	<tr>
+		<td>INDAD<</td>
+		<td>Sara</td>
+	</tr>
+</table>
+
+Let's assume that the same class is always associated with the same teacher.
+Then we have a functional dependency: *Class -> Teacher*. Iff *class* is a non-key attribute (e.g. it isn't the Primary Key),
+we are **not** in 3NF since *Class* implies *Teacher*, even though *Class* is not a key.
+
+So, if we make sure that *Class* is the primary key, we're golden!
+
 ### Boyce-Codd normal form (BCNF)
-Guarantees no redundancies and no lossless-joins - but not dependency preservation.
+Here's the criteria:
+
+1. Table should be in Third Normal Form.
+2. Every determinant must be a candidate key.
+
+A determinant is a column used to identify other column values in the same row.
+So, if we had this:
+<table>
+	<tr>
+		<td><strong>Class</strong></td>
+		<td><strong>TeacherId</strong></td>
+		<td><strong>StudentId</strong></td>
+	</tr>
+	<tr>
+		<td>MODIS<</td>
+		<td>0</td>
+		<td>3</td>
+	</tr>
+	<tr>
+		<td>BDSA<</td>
+		<td>1</td>
+		<td>4</td>
+	</tr>
+	<tr>
+		<td>INDAD<</td>
+		<td>2</td>
+		<td>6</td>
+	</tr>
+</table>
+
+And the Primary Key was on *TeacherId*, then we would have a problem with *StudentId*. It is a determinant as well.
+But - it isn't a candidate key, - it can occur in multiple rows and hence doesn't uniquely identify any single record.
+So, we are not in BCNF.
+
+Other than that, it guarantees no redundancies and no lossless-joins - but not dependency preservation.
+
+### Fourth Normal Form
+Here's the criteria:
+
+1. Table should be in Third Normal Form.
+
+2. It should not have any Multi-Valued dependencies.
+
+**When the presence of one or more rows in a table implies the presence of one or more other rows in a table, we have multi-valued dependencies**.
 
 
 ## Properties of decompositions

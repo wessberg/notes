@@ -357,3 +357,6 @@ AND l.suspect = r.witness
 AND l.witness < r.suspect;
 ```
 DISTINCT is needed here, because there may be multiple crimes that two persons are accusing each other of.
+
+### Correlated subquery
+A correlated subquery is a query nested inside another query **that uses values from the outer query**.

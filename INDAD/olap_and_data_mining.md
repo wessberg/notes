@@ -130,7 +130,12 @@ That means that it will execute whenever you want to retrieve the data.
 
 To create a materialized view:
 ```sql
-CREATE MATERIALIZED VIEW Something AS SELECT a, b, SUM(c) AS c FROM Foo NATURAL JOIN Bar NATURAL JOIN Baz GROUP BY a, c
+CREATE MATERIALIZED VIEW Something
+AS SELECT a, b, SUM(c) AS c
+FROM Foo
+NATURAL JOIN Bar
+NATURAL JOIN Baz
+GROUP BY a, c
 ```
 
 This is very beneficial for OLAP queries.

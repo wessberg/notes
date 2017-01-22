@@ -10,18 +10,24 @@ Describes the stored data in terms of the data model. **This means all relations
 
 Here is an example of a conceptual schema:
 ```
-Students(sid: string, name: string, login: string, age: integer, gpa: real)
+Students(
+	sid: string,
+	name: string,
+	login: string,
+	age: integer,
+	gpa: real
+)
 ```
 
 ## Physical schema
 Specifies how the relations described in the conceptual schema are actually stored on secondary devices such as disks and tapes. **This includes indexes (auxiliary data structures) to speed up data retrieval operations**.
 
 Here is an example of a physical schema:
-```
+
 Store all relations as unsorted files of records.
 
 Create indexes on the first column of the Students, Faculty and Courses relations, the sal column of Faculty and the capacity column of Rooms.
-```
+
 
 The process of arriving at a good physical schema is called **physical database design**.
 
@@ -66,8 +72,14 @@ The conceptual schema insulates users from changes in physical storage details. 
  - A relation schema describes the column heads for the table.
 
 ### Relation(al) schema example
-```
-Students(sid: string, name: string, login: string, age: integer, gpa: real)
+```sql
+Students(
+	sid: string,
+	name: string,
+	login: string,
+	age: integer,
+	gpa: real
+)
 ```
 
 ## Creating and modifying relations using SQL (with DDL)
@@ -77,13 +89,20 @@ The subset of SQL that supports the creation, deletion and modification of table
 This statement is used to define a new table.
 To create a `Students` relation, we can use the following statement:
 ```sql
-CREATE TABLE Students (sid CHAR(20), name CHAR(30), login CHAR(20), age INTEGER, gpa REAL)
+CREATE TABLE Students (
+	sid CHAR(20),
+	name CHAR(30),
+	login CHAR(20),
+	age INTEGER,
+	gpa REAL
+)
 ```
 
 ### `INSERT`
 Tuples are inserted using the `INSERT` command. We can insert a single tuple into the `Students` table as follows:
 ```sql
-INSERT INTO Students (sid, name, login, age, gpa) VALUES (53688, 'Smith', 'smith@ee', 18, 3.2);
+INSERT INTO Students (sid, name, login, age, gpa)
+VALUES (53688, 'Smith', 'smith@ee', 18, 3.2);
 ```
 
 ### `DELETE`
@@ -131,7 +150,14 @@ By using the `UNIQUE` constraint, we can declare that a subset of the columns of
 
 For instance:
 ```sql
-CREATE TABLE Students (sid CHAR(20), name CHAR(30), login CHAR(20), age INTEGER, gpa REAL, UNIQUE (name, age), CONSTRAINT StudentsKey PRIMARY KEY (sid))
+CREATE TABLE Students (
+	sid CHAR(20),
+	name CHAR(30),
+	login CHAR(20),
+	age INTEGER,
+	gpa REAL,
+	UNIQUE (name, age),
+	CONSTRAINT StudentsKey PRIMARY KEY (sid))
 ```
 
 Here, we make `sid` the primary key.
@@ -159,7 +185,12 @@ Here, we could make the `id` of a `Student` primary key and then define it as fo
 
 ### Specifying Foreign Key Constraints in SQL
 ```sql
-CREATE TABLE Enrolled (studid CHAR(20), cid CHAR(20), grade CHAR(10), PRIMARY KEY (studid, cid), FOREIGN KEY (studid) REFERENCES Students)
+CREATE TABLE Enrolled (
+	studid CHAR(20),
+	cid CHAR(20),
+	grade CHAR(10),
+	PRIMARY KEY (studid, cid),
+	FOREIGN KEY (studid) REFERENCES Students)
 ```
 
 Here we state that every `studid` value in `Enrolled` must also appear in `Students`. Notice that `studid` is also part of the tables primary key, combined with `cid`. This is perfectly fine.
@@ -202,12 +233,12 @@ Let's specify that when a `Students` row is deleted, all `Enrolled` rows that re
 
 ```sql
 CREATE TABLE Enrolled (studid CHAR(20),
-											 cid CHAR(20),
-											 grade CHAR(10),
-											 PRIMARY KEY (studid, dd),
-											 FOREIGN KEY (studid) REFERENCES Students
-											 											ON DELETE CASCADE
-																						ON UPDATE NO ACTION
+	cid CHAR(20),
+	grade CHAR(10),
+	PRIMARY KEY (studid, dd),
+	FOREIGN KEY (studid) REFERENCES Students
+		ON DELETE CASCADE
+		ON UPDATE NO ACTION
 )
 ```
 

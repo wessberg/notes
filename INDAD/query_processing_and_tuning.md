@@ -133,7 +133,9 @@ Using two or more indexes.
 ## Nested Loop Joins
 This one takes an expression such as
 ```sql
-SELECT * FROM Flights F, Aircraft A WHERE F.actype = A.actype
+SELECT *
+FROM Flights F, Aircraft A
+WHERE F.actype = A.actype
 ```
 
 and computes the join through a nested foreach loop:

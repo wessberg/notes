@@ -322,12 +322,15 @@ NOT POSSIBLE
 SELECT DISTINCT enum
 FROM employee
 WHERE NOT EXISTS
-     (SELECT *
-      FROM projects
-      WHERE NOT EXISTS
-                (SELECT *
-                 FROM works
-                 WHERE employee.enum = works.enum AND works.pnum = projects.pnum))
+	(SELECT *
+		FROM projects
+		WHERE NOT EXISTS
+			(SELECT *
+				FROM works
+				WHERE employee.enum = works.enum
+				AND works.pnum = projects.pnum
+			)
+	)
 ```
 
 Answer:

@@ -69,3 +69,28 @@ Entities has attributes. That is like classes with fields. You know this already
 In BSDB, the preferred notation for enumerations is:
 `attr (member1 | member2 | ...memberN)`
 
+### Subclasses in E/R modelling
+E/R modelling doesn't have the notation of subclasses.
+
+There are some ways to come around that:
+<img src="assets/er_subclasses.png" />
+
+However, don't use subclasses in E/R diagrams unless it is very important.
+
+### Cardinality
+
+<img src="assets/er_cardinality.png" />
+
+Notice how the circle means optional and the vertical line means mandatory.
+
+## Data dictionary
+Used for describing data that an E/R model cannot describe. For example, special cases or how the names in the data model relate to the application domain.
+
+<img src="assets/data_dictionary.png" />
+
+A data dictionary is a verbal data description and has:
+
+- A name of the entity.
+- A description
+- A list of attributes, their types and a description of them.
+- Examples

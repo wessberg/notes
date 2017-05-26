@@ -57,6 +57,7 @@ The law of parallel movement states that:
 
 This one ararely plays a role on user interfaces which tend to be semi-static.
 
+
 ## Data modeling
 ### The E/R Model
 <img src="assets/er_entities.png" />

@@ -313,3 +313,6 @@ If we are the developers (and not the buyers):
 	- We could use **keystroke counts** and **task time** tests here.
 
 Generally we say that Ease of learning implies ease of remembering. These two things are rarely tested for directly.
+
+## Severity classes
+<img src="assets/severity_classes.png" />

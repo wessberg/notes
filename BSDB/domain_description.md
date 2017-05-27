@@ -244,7 +244,7 @@ A use case is a kind of task description, but **where it is made explicit what t
 
 These are the use case diagrams from UML.
 
-![Use case diagram](./assets/use_case_Diagram.png)
+![Use case diagram](./assets/use_case_diagram.png)
 
 #### Use case models/descriptions
 

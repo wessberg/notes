@@ -70,6 +70,18 @@ To create an activity you make it as a subclass of the activity class.
 A service is a component that runs in the background. It does not provide a user interface.
 An activity can spawn a service. A service is implemented as a subclass of `service`.
 
+## Broadcast receivers
+
+A broadcast receiver is a component that enables the system to deliver events to the app outside of a regular user flow, allowing the app to respond to system-wide broadcast announcements.
+
+**The system can deliver broadcasts even to apps that aren't currently running (So it's time-uncoupled)**.
+
+## Content Providers
+
+A content provider manages a shared set of app data that you can store in the file system or another persistent storage location (db, web, etc).
+
+Through the content provider, other apps can query or modify the data if the content provider allows it.
+
 ## Activating components
 
 To activate an activity or service you use asynchronous messages called `intents`.
@@ -168,6 +180,8 @@ You can constrain which apps can start a particular activity to only apps with a
 
 ### The Activity lifecycle
 
+![Lifecycle activities](./assets/lifecycle_activities.png)
+
 An Activity goes through a number of states throughout its lifetime:
 
 #### `onCreate()`
@@ -175,6 +189,8 @@ An Activity goes through a number of states throughout its lifetime:
 This **must** be implemented. It fires when the system creates your activity. It should initialize the essential components of your activity. It should create views and bind data to lists here.
 
 **Most importantly, this is where you must call `setContentView()` to define the layout for the activity's user interface**.
+
+![onCreate()](./assets/on_create.png)
 
 #### `onStart()`
 
@@ -201,3 +217,33 @@ This callback is invoked when an Activity in the `Stopped` state is about to res
 This is invoked before an activity is destroyed.
 
 It is the final callback that the activity receives. It is usually implemented to ensure that all of an activity's resources are release when the activity, or the process containing it, is destroyed.
+
+## Resources
+
+Resources are defined in the `/res` directory. Resources are stuff like strings, images and other static content.
+
+### Referencing static resources
+
+You can reference any static resource with the `R` class.
+
+In code:
+
+`R.<resource_type>.<resource_name>`.
+
+Example
+
+```java
+TextView nameTextView = (TextView) findViewById(R.id.name_text_view);
+```
+
+In XML:
+
+`@<resource_type>/<resource_name>`
+
+Example:
+
+```xml
+<TextView
+	android:id="@+id/name_tet_view"
+/>
+```

@@ -37,9 +37,11 @@ To identify system functions, we take the tasks one by one and manually carry th
 
 ### Mini-specs
 
-Mini-specs is simply short, clear descriptions of a feature that a virtual window supports. Here's a list of examples:
+Mini-specs is simply short, clear descriptions of a feature that a virtual window supports in terms of **what the computer must do** Here's a list of examples:
 
 ![Mini-specs](./assets/mini_specs.png)
+
+Again, it describes the computer's actions, especially in terms of the E/R changes it will make.
 
 ## Standard functions
 
@@ -67,7 +69,20 @@ Traditionally, use cases are made very early as part of requirements elicitation
 4. Support domain mistakes. A user might intentially make change, but later find out that it was the wrong decision and need to revert it.
 5. Prevent slips and domain mistakes for non-reversible functions. "Are you sure?" is always a good way to fight slips.
 
+### What to undo
+
+#### For navigation
+
+*Close*, *Cancel* and *Back* is often enough.
+
+#### For data entry
+
+Chronological undo. Roll back time using saved data.
+Track changes: accept/delete single change.
+
 ## Single-page vs Multi-page platform
+
+![Platforms](./assets/platforms.png)
 
 - A **Single-page platform** is like the web. The app shows only 1 page at a time on the screen. A good metaphor is a Book.
 

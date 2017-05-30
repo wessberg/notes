@@ -368,3 +368,51 @@
 		</td>
 	</tr>
 </table>
+
+## Data dictionary
+
+![Data dictionary](../assets/data_dictionary.png)
+
+<table>
+	<caption>
+		Data dictionary
+	</caption>
+	<tr>
+		<td><strong>D[Num]: Class: [Name]</strong></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>Description</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td><strong>Examples:</strong></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>a.</td>
+		<td>Text Here</td>
+	</tr>
+	<tr>
+		<td>b.</td>
+		<td>Text Here</td>
+	</tr>
+	<tr>
+		<td><strong>Attributes:</strong></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>[Num]. [Name]</td>
+		<td>
+			[Type]<br>
+			[Description]
+		</td>
+	</tr>
+	<tr>
+		<td>[Num]. [Name]</td>
+		<td>
+			[Type]<br>
+			[Description]
+		</td>
+	</tr>
+</table>

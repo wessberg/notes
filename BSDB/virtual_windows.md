@@ -143,4 +143,4 @@ The *O* thing is what makes it a CREDO check and not a CRUD check.
 ## Virtual windows for searching
 
 Apparently, buttons are okay as long as they are "search" buttons.
-[!Virtual windows for searching](./assets/virtual_windows_searching.png)
+![Virtual windows for searching](./assets/virtual_windows_searching.png)

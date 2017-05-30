@@ -268,7 +268,7 @@ It's up to us. We could, for example, say that 80% must agree that the system is
 
 SUMI is an approach for questionnaires. It has 50 questions you can ask for *any* system. It also has a standard set of weights for these questions so it ends up with one single number to characterize the usability.
 
-#### Which usability factors are Opinion polls good for?
+#### Which usability factors are Opinion polls good for
 
 - Fit for use - We can let the users state whether their tasks are well supported.
 - Subjective satisfaction

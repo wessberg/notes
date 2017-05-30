@@ -36,7 +36,12 @@
 	</tr>
 	<tr>
 		<td><strong>Frequency:</strong></td>
-		<td>Text here</td>
+		<td>
+			<strong>Total:</strong>
+			[Text Here]
+			<br><strong>User:</strong>
+			[Text Here]
+		</td>
 	</tr>
 	<tr>
 		<td><strong>Difficult:</strong></td>
@@ -50,7 +55,7 @@
 		<td><strong>[num].</strong> Text here (optional)<br>
 		<strong>Problem:</strong> Text Here<br>
 		<strong>Solution?:</strong> Text Here<br>
-		<strong>Smart:</strong> Text Here<br>
+		<strong>Clever:</strong> Text Here<br>
 		<strong>[num]a.</strong> Text Here<br>
 		<strong>[num]b.</strong> Text Here<br>
 		</td>
@@ -63,7 +68,10 @@
 ![Work area and user profile](../assets/work_area_and_user_profile.png)
 
 <table>
-	<caption>[WORK AREA NAME]</caption>
+	<caption>
+	[WORK AREA NAME]<br>
+	<em>[Description]</em>
+	</caption>
 	<tr>
 		<td><strong>User profile</strong></td>
 		<td><strong>IT Knowledge</strong></td>
@@ -117,7 +125,12 @@
 	</tr>
 	<tr>
 		<td><strong>Frequency:</strong></td>
-		<td>Text here</td>
+		<td>
+			<strong>Total:</strong>
+			[Text Here]
+			<br><strong>User:</strong>
+			[Text Here]
+		</td>
 		<td></td>
 	</tr>
 	<tr>
@@ -134,7 +147,7 @@
 		<td><strong>1.</strong> Text here<br>
 		<strong>Problem:</strong> Text Here<br>
 		<strong>Solution?:</strong> Text Here<br>
-		<strong>Smart:</strong> Text Here<br>
+		<strong>Clever:</strong> Text Here<br>
 		<strong>1a.</strong> Text Here<br>
 		<strong>1b.</strong> Text Here<br>
 		</td>
@@ -197,7 +210,6 @@
 		<td><code>CREDO</code></td>
 	</tr>
 </table>
-
 
 <table>
 	<caption>Data model versus tasks</caption>

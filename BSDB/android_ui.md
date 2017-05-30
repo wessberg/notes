@@ -90,11 +90,15 @@ There aredifferent layout types built into Android:
 
 A Linear layout organizes ints children into a single horizontal or vertical row. It creates a scrollbar if the length of the window exceeds the length of the screen.
 
+![Linear layout code example](./assets/linear_layout_code.png)
+
 ### Relative Layout
 
 ![Relative layout](./assets/relative_layout.png)
 
 Enable you to specify the location of child objects relative to each other (child A to the left of child B) or to the parent (aligned to the top of the parent).
+
+![Relative layout code example](./assets/relative_layout_code.png)
 
 ### Web View
 

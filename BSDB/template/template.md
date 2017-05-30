@@ -89,10 +89,6 @@
 <table>
 	<caption>Design Defects</caption>
 	<tr>
-		<td></td>
-		<td></td>
-	</tr>
-	<tr>
 		<td><strong>D100.</strong></td>
 		<td>Text here</td>
 	</tr>
@@ -159,7 +155,7 @@
 		<td><strong>System-action:</strong></td>
 	</tr>
 	<tr>
-		<td><strong>[Num] Text here</strong></td>
+		<td><strong>[NUM].[NUM] Text here</strong></td>
 		<td></td>
 		<td></td>
 	</tr>
@@ -252,6 +248,10 @@
 	<tr>
 		<td><strong>Measure:</strong></td>
 		<td>Text here?</td>
+	</tr>
+	<tr>
+		<td></td>
+		<td></td>
 	</tr>
 	<tr>
 		<td></td>

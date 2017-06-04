@@ -6,6 +6,90 @@
 >
 > HR, Chapter 4
 
+## Tagged values
+
+Tagged values are used when grouping together values of different kinds to form a single set of values.
+
+In F#, a collection of tagged values is declared by a *type* declaration:
+
+```fsharp
+type Shape = | Circle of float
+						 | Square of float
+						 | Triangle of float*float*float
+```
+
+I like to see it as a type *alias* for something else. Another name for a type.
+
+What makes them special, though, is that they have constructors:
+
+### Tagged value constructors
+
+When you have a tagged value, they suddenly have value constructors. This means that in the above example, you could do:
+
+```fsharp
+Circle 1.2
+val it : Shape = Circle 1. 2
+```
+
+A constructor is just a function.
+
+### Equality in tagged values
+
+Two tagged values are equal if they have the same constructor and their components are equal:
+
+```fsharp
+Circle 1.2 = Circle(1.0 + 0.2) // true
+Circle 1.2 = Square 1.2 // false
+```
+
+## Enumeration types (enums)
+
+An `enum` is a special kind of tagged value without any constructor arguments:
+
+```fsharp
+type Color = Red | Blue | Green | Yellow | Purple
+type Color =
+	| Red
+	| Blue
+	| Green
+	| Yellow
+	| Purple
+
+Green
+val it : Color = Green
+```
+
+And you can pattern match on them:
+
+```fsharp
+let niceColor = function
+	| Red -> true
+	| Blue -> true
+	| _ -> false
+```
+
+## Catching exceptions with `try ... with` expressions
+
+You can catch exceptions:
+
+```fsharp
+let foo =
+	try
+		something
+	with
+		| Failure s -> s
+```
+
+where the thing inside the `with` is like a `catch` clause in other languages except the `with` part must be a match expression.
+
+## Partial functions - The `Option` type
+
+The `Option` type is F#'s way of handling conditional/nullable values.
+
+With it, `None` is used as result for arguments where the function is undefined while `Some v` is used when the function has value *v*.
+
+This way, you can check for undefined values, especially useful in match functions.
+
 ## Lists
 
 Let's start with a definition. A *list* in F# is a finite sequence of values **of the same type**.

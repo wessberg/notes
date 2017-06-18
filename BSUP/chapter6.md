@@ -1,6 +1,6 @@
 # Chapter 6 - Activity planning
 
-> > [SPM] Chapter 6
+> [SPM] Chapter 6
 
 A schedule for at project must also include the start and completion times for each activity.
 

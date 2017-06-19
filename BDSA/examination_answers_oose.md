@@ -36,9 +36,11 @@ There are many different software process models and activities, but the typical
 6. Testing, where we attempt to find differences between the expected behavior specified by the system models and the actual behavior of the implemented code.
 
 ## Software process models
+
 So, while these activities of software engineering are common to most development projects, there are different ways to about them.
 
 ### Waterfall pattern
+
 One way is the waterfall pattern, where each step happens sequentially. It is criticized for taking the approach that the world is static, or at least that neither the application nor solution domain change.
 
 Also, by deferring validation and testing to late in the process can result in major issues. It's not what the clients wanted, or it hasn't been properly usability tested

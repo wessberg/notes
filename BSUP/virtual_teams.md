@@ -17,7 +17,7 @@ A group of people working on a project, but residing in different locations.
 
 *"A group of geographically, organizationally, and/or time dispersed workers brought together by information and telecommunication technologies to accomplish one or more organizational tasks"*.
 
-In virtual teams, there are a high level of interdependence and cooperation among team members, in comparison with other offsourcing/insourcing of work.
+In virtual teams, there are a high level of interdependence and cooperation among team members, in comparison with other outsourcing/insourcing of work.
 
 Especially in the case of self-organizing teams, it is crucial to have as many functions performed in all locations to avoid silos which can affect team dynamics and performance.
 

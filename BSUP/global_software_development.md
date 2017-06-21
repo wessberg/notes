@@ -26,7 +26,7 @@ Promptly and uniformly sharing information from customers and the market among t
 
 It might be that the distributed teams aren't aware of which tasks are currently on the critical path.
 
-### Project nad process management issues
+### Project and process management issues
 
 If two distributed teams define a process differently, we have an issue. Synchronization requires commonly defined milestones and a clear entry and exit criteria!
 

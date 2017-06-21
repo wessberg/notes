@@ -127,6 +127,7 @@ The addition of a new piece of information may invalidate all the knowledge we h
 We must be mentally prepared to start from scratch.
 
 ### The waterfall model
+
 The equivalent of the bucket theory of the mind (which states that learning is linear - just keep pouring stuff into a persons head for 6 hours straight and he will keep learning linearly - is equivalent to the sequential waterfall model for software development in which all steps of the engineering method are accomplished sequentially.
 
 This model doesn't really fly in the real world where the requirements and technology changes all the time.

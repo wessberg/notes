@@ -2,7 +2,7 @@
 
 > [Global Software Development and Collaboration: Barriers and solutions](https://learnit.itu.dk/pluginfile.php/166159/course/section/88128/2010%20-%20Noll.pdf)
 
-## Difference kinds of global distance
+## Different kinds of global distance
 
 - Geographic distance: Being physically separate from each other.
 

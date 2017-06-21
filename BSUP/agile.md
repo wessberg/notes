@@ -1,7 +1,6 @@
 # Agile
 
 > [The Agile Manifesto](http://agilemanifesto.org/)
-
 > [Agile User Stories](https://www.scrumalliance.org/community/articles/2013/september/agile-user-stories)
 
 ## Main points of the Agile Manifesto
@@ -46,7 +45,7 @@ While there is value in the items to the right, the items on the left are valued
 
 ## User stories
 
-A term coming from XP. A user story is a short, simple description of a feature **told from the perspective of the person who desires the new capability**. This would most likely, at least preferably be the customer of the system. 
+A term coming from XP. A user story is a short, simple description of a feature **told from the perspective of the person who desires the new capability**. This would most likely, at least preferably be the customer of the system.
 
 **This user-centric approach makes sure that we always focus on what the user wants to have, not what the user wants the system to do**.
 
@@ -62,6 +61,36 @@ Anyone can write a user story!
 
 The user story clearly describes the goal or benefit the user is trying to achieve through it.
 
+### Where are the details of user stories
+
+If a user story were *"As a user, I want to cancel a reservation"*, then we may want more details like "will the user get a refund?", etc.
+
+**Such details are added in smaller sub-stories**, or, **Details can be added as notes on the card**.
+
 ## Epics
 
 An *Epic* is a **large user story**. It will later by decomposed into smaller stories that fit more readily into a single iteration.
+
+ For example, *"As a VP of Marketing, I want to review the performance of historical promotional campaigns, so that I can identify and repeat profitable ones"* would be an Epic.
+
+### Starting with Epics
+
+When writing user stories, it is a great idea to start with the Epics and then break it down into smaller user stories from there.
+
+## Measures of size
+
+### Traditionally
+
+- Lines of code
+- Function points
+
+### In Agile
+
+- Story Points
+- Ideal days
+
+## Estimating story points
+
+Complexity, uncertainty, risk and volume of work play into estimating story points.
+
+If you used days instead, it would be slightly confusing since days also involve meetings, lunch, etc.

@@ -151,15 +151,24 @@ If defects are found, it causes a loop back to the corresponding development sta
 
 ## The spiral model
 
-Is like the waterfall model, but we think of it a little differently.
+The Spiral is an iterative, risk-oriented model.
 
-It is one where a greater level of detail is considered at each stage, more and more, and hence we get more and more confidence about the probability of success for the project for each stage.
+The model goes through these four phases, iteratively:
+
+1. Determine objectives.
+2. Identify and resolve risks.
+3. Development and Test.
+4. Plan the next iteration.
 
 ## Software Prototyping
 
 A *prototype* is a working model of one or more aspects of the projected system. It is constructed and tested quickly and inexpensively in order to test out assumptions.
 
 Prototypes can be classified as throw-away, evolutionary or incremental. We only consider software prototypes here (not paper-and-pen prototypes)
+
+**The Incremental/Iterative approach is based on the Spiral model and is the basis for almost all agile methods**!
+
+**Which each iteration, the system scope is extended. The system is not built, it is grown**.
 
 ### Trow-away prototypes
 
@@ -309,3 +318,17 @@ In general, where uncertainty is high, we should use an evolutionary approach su
 Where requirements are relatively certain, but there are many complexities, we should go for an incremental approach.
 
 **When deadlines are tight, then either an evolutionary or an incremental approach is favored over a waterfall strategy**!
+
+## Rational Unified Process
+
+This is an iterative process, based on UML.
+Each iteration have 4 phases:
+
+1. Inception
+	- Models the scope of the system. We perform initial cost and budget estimations
+2. Elaboration
+	- Here we focus on domain analysis. Define the basis architecture for the system.
+3. Construction
+	- Here the bulk of development happens.
+4. Transition
+	- The phase where the system goes from development to production.

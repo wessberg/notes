@@ -1,9 +1,7 @@
 # The Scrum guide
 
 > [The Scrum guide](https://learnit.itu.dk/pluginfile.php/166159/course/section/88120/2013%20-%20Scrum%20Guide.pdf)
-
 > [Velocity](https://www.scrumalliance.org/community/articles/2014/february/velocity)
-
 > [Burndown Chart](https://www.scrumalliance.org/community/articles/2013/august/burn-down-chart-%E2%80%93-an-effective-planning-and-tracki)
 
 ## Scrum
@@ -384,10 +382,12 @@ The Scrum Master's job is to work with the Scrum Team and the organization to in
 
 Team velocity is **the rate at which a team delivers stories from the Product Backlog**.
 
+It is measured in the units you use to estimate product backlog items, whether it be arbitrary fibonacci numbers or actual hours.
+
 If you know your velocity, you will have an idea about:
 
 - How much value you've delivered until now (in story points and done user stories), and
-- *When* you will be able to delive rall user stories in the product backlog
+- *When* you will be able to deliver all user stories in the product backlog
 - How many story points you will be able to deliver by a certain date.
 
 ### Calculating velocity
@@ -403,6 +403,44 @@ We need it for:
 - Predicting how much scope can be delivered by a specific date.
 - Predicting a date for a fixed amount of scope to be delivered.
 - **Understanding our limits while defining the amount of scope we will commit for a sprint**.
+
+### Velocity In fixed-date planning
+
+If the project has a fixed end date, we should:
+
+1. Determine how many sprints we have.
+2. Estimate velocity as a range.
+3. Use that range times the number of sprints to partition the backlog into *will have*, *might have* and *wont have*.
+
+It can be tough to decide a range if you have no previous iterations (sprints) to look at for historical data on how many story points the team can deliver per iteration.
+
+If you promise the client only the *will have*'s, the risk for not delivering will be minimal, but you may not win the contract. If you instead promise the client the *will have*'s and *might have*'s, the risk is high - but you will win the contract.
+
+### Velocity in fixed-scope planning
+
+We should
+
+1. Sum the product backlog items.
+2. Estimate velocity as a range.
+3. Use that sum of the backlog divided by the velocity range to determine a date range.
+
+The same risk dilemma exists as for fixed-date planning where you increase risk if you promise too much.
+
+### Velocity ranges
+
+For a fixed date project, the scope range is: *"By that date you will have all of these features and some of these"*.
+
+For a fixed scope project, the scope range is: *"it will take us between 6 and 8 sprints to deliver all those features"*.
+
+### How to forecast an initial velocity
+
+When you have no historical data to forecast velocity from, instead sum the story points of the individual sprint backlog items the team settled on during sprint planning. We will gradually refine our velocity as we move from sprint to sprint and learn how much work the team can handle.
+
+### Velocity changes when team size changes
+
+What typically happens when the team grows with 1 member is that the velocity reduces with ~20% in the first sprint, then ~4% in the second, but then improves with ~12%.
+
+So, a couple of sprints with reduced velocity, but in the end, it benefits the team.
 
 ## User stories in Scrum
 
@@ -467,3 +505,9 @@ As members of the team picks up tasks from the Sprint backlog and works on them,
 Depending on how the chart ends up looking, we gain some valuable insight in the process.
 
 For example, if the line stays up right until the end, it may indicate that our tasks are too large (e.g. takes the full duration of the sprint to finish), and we should probably break them down into smaller ones, so we can better track the progress of the Sprint.
+
+## Burnup chart
+
+A burnup chart shows both the total amount of work (the scope) *and* how much of it is completed.
+
+Where a Burndown chart can only tell something about how many remaining story points there is, the Burnup chart can explain how the total amount of story points evolved during the course of the Sprint.

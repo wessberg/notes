@@ -2,6 +2,10 @@
 
 > [The Scrum guide](https://learnit.itu.dk/pluginfile.php/166159/course/section/88120/2013%20-%20Scrum%20Guide.pdf)
 
+> [Velocity](https://www.scrumalliance.org/community/articles/2014/february/velocity)
+
+> [Burndown Chart](https://www.scrumalliance.org/community/articles/2013/august/burn-down-chart-%E2%80%93-an-effective-planning-and-tracki)
+
 ## Scrum
 
 Scrum is a framework for **developing and sustaining** complex products.
@@ -375,3 +379,91 @@ At the end of a Sprint, the new Increment must be "Done". This means that it mus
 The Scrum Master's job is to work with the Scrum Team and the organization to increase the transparency of the artifacts.
 
 **Transparency is important because decisions to optimize value and control risk are made based on the perceived state of the artifacts**.
+
+## Velocity
+
+Team velocity is **the rate at which a team delivers stories from the Product Backlog**.
+
+If you know your velocity, you will have an idea about:
+
+- How much value you've delivered until now (in story points and done user stories), and
+- *When* you will be able to delive rall user stories in the product backlog
+- How many story points you will be able to deliver by a certain date.
+
+### Calculating velocity
+
+If we deliver 3 user stories, the sum of story points equals 20. **Then our velocity is 20**.
+
+If we in the next Sprint deliver 30 story points, then our velocity within that sprint is 30.
+
+**We then average the two to get our velocity which is 25**.
+
+We need it for:
+
+- Predicting how much scope can be delivered by a specific date.
+- Predicting a date for a fixed amount of scope to be delivered.
+- **Understanding our limits while defining the amount of scope we will commit for a sprint**.
+
+## User stories in Scrum
+
+In Scrum, user stories are the items in the Product Backlog. The Product Backlog, again, is an ordered list of user stories.
+
+## Agile Estimation
+
+How do we do estimation in agile?
+
+We do it within the team as part of the osmosis of knowledge sharing. This means that everyone will hear all questions that will arise about requirements and user stories. And, the cross-functional nature of agile teams suggests that everyone, be it developers, designers and anyone else, should participate since they have different perspectives on the product.
+
+### Story Points
+
+#### Traditionally
+
+Traditionally, estimates are given in a time format, be it hours, days, weeks or months.
+
+#### Agile
+
+Many agile teams have transitioned to **story points**.
+
+Story points rate the **relative effort of work in a Fibonacci-like format**: 0, 0.5, 1, 2, 3, 5, 8, 13, 20, 40, 100.
+
+At least this is what many teams decide to do, partly because numbers are intuitively understood as a great estimate and a fibonacci sequence is great for addressing uncertainty.
+
+### Why Story points
+
+- Dates don't account for the non-project related work that inevitably creeps into our days such as emails, meetings, etc.
+
+- Dates have an emotional attachment to them. Relative estimation removes the emotional attachment.
+
+## How to assign Story Points
+
+The team use an exercise called **Planning Poker**.
+
+### Planning Poker
+
+1. The team takes an item from the backlog.
+2. The item is discussed **briefly**.
+3. Each team member formulates a mental estimate.
+4. Every team member holds up a card with the number that reflects their estimate.
+5. If everyone is in agreement, then assign that amount of story points to the user story.
+6. Otherwise, take a couple of minutes to understand the rationale behind different estimates. Decide on an estimate together.
+
+### Limits of Story Points
+
+**No individual task should be more than 16 hours of work**. In the world of Story points, you may decide that 20 points is equal to 16 hours.
+
+## Burndown chart
+
+We use burndown charts for tracking either user story points or task counts (it's up to the scrum team).
+
+- Dates in the sprint are plotted on the X-axis.
+- Remaining effort are plotted on the Y-axis.
+
+### Updating the Burndown chart
+
+As members of the team picks up tasks from the Sprint backlog and works on them, they update effort remaining for the task. The Burndown chart will then go up and down depending on the remaining amount of story points or hours, depending on the kind of burndown chart you are using.
+
+### Interpreting the Burndown Chart
+
+Depending on how the chart ends up looking, we gain some valuable insight in the process.
+
+For example, if the line stays up right until the end, it may indicate that our tasks are too large (e.g. takes the full duration of the sprint to finish), and we should probably break them down into smaller ones, so we can better track the progress of the Sprint.

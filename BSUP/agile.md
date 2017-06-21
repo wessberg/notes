@@ -1,8 +1,10 @@
-# Agile Manifesto
+# Agile
 
 > [The Agile Manifesto](http://agilemanifesto.org/)
 
-## Main points
+> [Agile User Stories](https://www.scrumalliance.org/community/articles/2013/september/agile-user-stories)
+
+## Main points of the Agile Manifesto
 
 Here's the main points:
 
@@ -16,7 +18,7 @@ Here's the main points:
 
 While there is value in the items to the right, the items on the left are valued more.
 
-## Principles
+## Principles of Agile
 
 - Satisfy the customer through early and continuous delivery of valuable software.
 
@@ -41,3 +43,25 @@ While there is value in the items to the right, the items on the left are valued
 - The best architectures, requirements and designs emerge from self-organizing teams.
 
 - At regular intervals, the team reflects on how to become more effective, then tunes and adjusts its behavior accordingly.
+
+## User stories
+
+A term coming from XP. A user story is a short, simple description of a feature **told from the perspective of the person who desires the new capability**. This would most likely, at least preferably be the customer of the system. 
+
+**This user-centric approach makes sure that we always focus on what the user wants to have, not what the user wants the system to do**.
+
+### The form of a user story
+
+*As a <type of user>, I want to <perform some task>, so that I can <achieve some goal>*.
+
+### Who can write a user story
+
+Anyone can write a user story!
+
+### Why user stories
+
+The user story clearly describes the goal or benefit the user is trying to achieve through it.
+
+## Epics
+
+An *Epic* is a **large user story**. It will later by decomposed into smaller stories that fit more readily into a single iteration.

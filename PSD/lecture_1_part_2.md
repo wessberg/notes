@@ -1,4 +1,4 @@
-# PSD - Chapter 2, Interpreters and Compilers
+# Lecture 1 Part 2
 
 > Programming Language Concepts, Chapter 2
 

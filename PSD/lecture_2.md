@@ -1,4 +1,4 @@
-# PSD - Chapter 3, From Concrete Syntax to Abstract Syntax
+# Lecture 2
 
 > Mogensen BCD sections 2.1-2.7, 2.9, 3.1-3.6
 > Programming Language Concepts, Chapter 3

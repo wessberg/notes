@@ -1,4 +1,4 @@
-# Chapter 2 - Basic Structures: Sets, Functions, Sequences, Sums, and Matrices
+# Lecture 3
 
 > Discrete Mathematics and Its Applications, Chapter 2.1, 2.2, 2.3, 2.4, 2.5
 

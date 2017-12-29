@@ -1,4 +1,4 @@
-# Chapter 1 - The Foundations: Logic and Proofs
+# Lecture 1 and 2
 
 > Discrete Mathematics and Its Applications, Chapter 1
 

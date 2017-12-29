@@ -1,4 +1,4 @@
-# PSD - Chapter 1
+# Lecture 1
 
 > Programming Language Concepts, Chapter 1
 

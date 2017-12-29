@@ -1,4 +1,4 @@
-# PSD - Chapter 4
+# Lecture 3
 
 > Mogensen BCD sections 3.12 - 3.17
 > Programming Language Concepts, Chapter 4

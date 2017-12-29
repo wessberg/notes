@@ -1,4 +1,4 @@
-# Goals, Environment and Tools
+# Lecture 1
 
 > CS:APP, Chapter 1
 

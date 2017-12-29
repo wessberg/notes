@@ -1,4 +1,4 @@
-# Chapter 4 - Number Theory and Cryptography
+# Lecture 4
 
 > Discrete Mathematics and Its Applications, Chapter 24.1, 4.2, 4.3, skim 4.4, skim 4.5
 

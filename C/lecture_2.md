@@ -1,4 +1,4 @@
-# Getting Started with C
+# Lecture 2
 
 > CS:APP, Chapter 2.1
 

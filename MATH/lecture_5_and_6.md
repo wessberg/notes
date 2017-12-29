@@ -1,6 +1,6 @@
 # Lecture 5
 
-> Discrete Mathematics and Its Applications, Chapter 2.6, 5.1, 5.2, 5.3, 5.4
+> Discrete Mathematics and Its Applications, Chapter 2.6, 5.1, 5.2, 5.3, 5.4, 8.1, 8.2
 
 ## Matrices
 
@@ -344,3 +344,26 @@ It has two parts:
 **Basis Step**: Show that the result holds for all elements specified in the basis step of the recursive definition to be in the set.
 
 **Recursive step**: Show that if the statement is true for each of the elements used to construct new elements in the recursive step of the definition, the result holds for these new elements.
+
+## Recursive definition of a sequence
+
+A recursive definition of a sequence specifies one or more initial terms and a rule for determining subsequent terms from those that precede them.
+
+This rule for determining subsequent terms from those that precede them is called a **recurrence relation**.
+
+The generated sequence is called a *solution* to the recurrence relation.
+
+## Linear Homogeneous recurrence relations
+
+A *linear homogeneous recurrence relation of degree k with constant coefficients* is a reccurrence relation of the form:
+
+*a<sub>n</sub> = c<sub>1</sub>a<sub>n - 1</sub> + c<sub>2</sub>a<sub>n - 2</sub> + ... + c<sub>k</sub>a<sub>n - k</sub>*, where *c<sub>1</sub>, c<sub>2</sub>, ..., c<sub>k</sub>* are real numbers, and *c<sub>k</sub> != 0*.
+
+- It is *linear* because the right-hand side is a sum of previous terms of the sequence, each multiplied by a function of *n*.
+- It is *homogenous* because no terms occur that are not multiples of the *a<sub>j</sub>*s.
+- All coefficients of the terms of the sequence are all constants, rather than functions that depend on *n*.
+- The *degree* is *k* because *a<sub>n</sub>* is expressed in terms of theg previous *k* terms of the sequence.
+
+### Solving Linear Recurrence Relations
+
+The approach is to look for solutions of the form *a<sub>n</sub> = r<sup>n</sup>* where *r* is a constant.

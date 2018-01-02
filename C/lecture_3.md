@@ -1,4 +1,4 @@
-# Lecture 2
+# Lecture 3
 
 > CS:APP, Chapter 2.2
 

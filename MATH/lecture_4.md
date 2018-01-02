@@ -2,6 +2,16 @@
 
 > Discrete Mathematics and Its Applications, Chapter 24.1, 4.2, 4.3, skim 4.4, skim 4.5
 
+## Additive Inverse
+
+The property that *-n + n = 0*.
+
+## Multiplicative Inverse / Reciprocal
+
+The property that *n * (1 / n) = 1*
+
+The number you multiply with to get 1.
+
 ## Divisibility and Modular Arithmetic
 
 Division of an integer by a positive integer produces a quotient and a remainder. Working with these remainders leads to modular arithmetic!

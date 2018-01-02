@@ -113,6 +113,24 @@ States that if *N* objects are placed into *k* boxes, then there is at least one
 
 A *permutation* of a set of distinct objects is an ordered arrangement of these objects.
 
+We say *how many ways can we fit n elements into k items*. For example, *how many ways can we seat 6 people (n) into 4 chairs (k)* The formula is:
+
+*n! / (n-k)!*.
+
+This is also called the Binomial-coefficient.
+
+So, that's how many *permutations* there are.
+
+But, if the question then is *How many ways can we choose k elements of a pool of n*, for example *How many ways can we choose 4 people (k) from a group of 6(n) people*, the formula becomes:
+
+*n! / (k! * (n-k)!)*.
+
+That's how many *combinations* there are.
+
+**Permutations are for lists (order matters) and combinations are for groups (order doesn't matter)**.
+
+Now, whatif we want to say **
+
 #### *r*-permutation
 
 An ordered arrangement of *r* elements of a set is called an *r*-permutation.

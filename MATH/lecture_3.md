@@ -358,6 +358,14 @@ A function *f* is one-to-one if and only if *f(a) != f(b)* whenever *a != b*.
 
 Functions where the *range* and the *codomain* are equal are called *onto* functions. So, here, every returnable value from the codomain will be returned.
 
+### Injective
+
+If a function is *one-to-one*
+
+### Surjective
+
+If a function is *onto*
+
 ### Bijective
 
 If a function is *one-to-one* AND *onto*, it is a *bijection* (or, it is *bijective*).

@@ -315,3 +315,11 @@ This is a technique that allows a single CPU to execute multiple flows of contro
 ## Single-Instruction, Multiple-Data (SIMD) Parallelism
 
 One instruction can actually cause multiple operations to be performed in parallel in a mode known as SIMD parallelism. This means that you could add, say, 8 pairs of single-precision floating point numbers in parallel!
+
+## Arithmetic Logic Unit (ALU)
+
+This is an electronic circuit that performs arithmetic and bitwise logical operations on integer binary numbers.
+
+## Floating-point unit (FPU)
+
+This guy performs arithmetic operations on floating point numbers!

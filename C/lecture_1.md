@@ -32,7 +32,7 @@ Each text line is terminated by the invisible *newline* character `\n` which is 
 
 ### Text files vs Binary files
 
-*Text Files* are files that consist exclusively of ASCII characters.
+*Text Files* are files that consist exclusively of ASCII or Unicode characters.
 
 ### Different contexts
 

@@ -263,3 +263,11 @@ You must be able to explain:
 - Pages
 - Page Table
 - Translation Lookaside Buffer (TLB)
+
+## Virtual Address
+
+Is a [Virtual Page Number, Offset]
+
+## Physical Address
+
+Is a [Physical Page Number, Offset]

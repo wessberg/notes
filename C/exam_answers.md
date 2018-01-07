@@ -19,7 +19,46 @@ An *Arithmetic* shift is like a *Logical* shift, except for the important differ
 
 #### 1.A Exam version
 
-- Forklar forskellene bedre - sæt det i forhold til Two's-Complement hvor et logical shift ville sætte 0er ind foran og få det til at se ud som om at tallet er positivt - uanset om det er det eller ej - i modsætning til aritmetisk, som beholder sign bit.
+Bit Shifting is just moving every bit one or more positions to the left or to the right.
+
+This has some nice properties. For example, we can use it ti perform multiplication and division.
+
+Say we had the number 1010<sub>2</sub> which is equal to 10<sub>10</sub>
+
+If we perform a left-shift by 1, we move everything to the left by one and fill out the hole in the right side by an additional zero:
+
+1010 << 1:
+ 1010
+10100
+
+Now, 10100<sub>2</sub> is 20<sub>10</sub>, so we've effectively multiplied the number by 2!
+
+This means that we can do multiplication in binary simply by performing a left-shift.
+
+Now, say we were to perform a right shift by 1:
+
+1010 >><sub>L</sub> 1:
+1010
+01010
+
+0101<sub>2</sub> is equal to 5<sub>10</sub>, so we've effectively divided the number by 2!
+This means that we can do division in binary by performing a right-shift.
+
+While this works, notice how we just added a leading zero. This is fine for unsigned numbers, e.g. ones that we know to be positive.
+
+But with Two's-complement, we use the leading bit to indicate if it is a positive or a negative number. We call it the sign bit. If it is 1, we know that it is a negative number. If it is a zero, we know that it is a positive number.
+
+So, if we just add leading 0s, and if we have a negative number (where the sign bit is 1), all of a sudden it becomes positive. So that is not good!
+
+Arithmetic right shifts solves this by filling the holes with the sign bit, rather than by 0s:
+
+In Two's-Complement, if this was a 4 bit system, *1010* is equal to *-6<sub>10</sub>*.
+
+1010 >><sub>A</sub> 1:
+1010
+11010
+
+1101 is equal to *-3<sub>10</sub>* which is the expected result of the division.
 
 ### 1. B
 
@@ -54,7 +93,25 @@ r = (v + mask) ^ mask;
 
 #### 1. B Exam version
 
-Forklar hvad en bitmask er, forklar hvad en absolut værdi er i denne sammenhæng.
+The written solution is wrong and confusing. I'm sorry. I've added two different versions of the solution - and one of them is outside of the `main` function. And, in the example, I take the size of an `int`, even though you are asking for a `long`. So let me do it in another way:
+
+If we want to take the absolute value of *n*, and it is represented by a `long` with in Two's-Complement, what we need to do first is to create a bit mask that contains all 1s for a negative number or all 0s for a positive number.
+
+To do that, we have to perform an arithmetic right shift of *n* by the amount of bits it has - minus 1.
+
+The amount of bits in a long is equal to the size of a long in **bits**. If we know that the word size of the system is 8 bytes, we can simply take the sizeof(long), which gives us a 8 bytes, and then multiply by the word size, which gives us 64.
+
+Now, we right shift arithmetically 63 times - one less than the size in bits. Because arithmetic right shifts preserve the sign bit, we get a bunch of 1s.
+
+All-1s is always equal to *-1* in Two's-Complement. Likewise, all-0s is always equal to *0* in Two's-Complement.
+
+We then XOR (^) the number, *n*, with the mask. This is effectively a NOT for the mask for negative values, and a no-op for positive values.
+
+Finally we subtract the XOR from the mask to get the absolute value.
+
+For positive values, the XOR with all 0s would get the original binary string, and since the mask is all-0s, the difference between XOR - mask would be identical to the original value and thus give the same result.
+
+For negative values, the XOR of *n* with the mask would be equal to *NOT x + 1* in Two's-Complement.
 
 ## Question 2
 
@@ -76,7 +133,34 @@ An attacker can still get around a stack canary by gaining control of a pointer 
 
 #### 2. A Exam version
 
-Tegn det op, vis hvordan det ville se ud i maskinkode.
+So, imagine you've allocated a 8 bytes to a char array: `char buf[8]`.
+
+Now, you request some input from the command line and set all of the received characters within that buffer.
+
+If you don't consider the length of the given input, then you may end up exceeding that buffer. For example:
+
+```text
+Input:              "H    e    l    l    o    W    o    r    l   d"
+buf:               ["H", "e", "l", "l", "o", "W", "o", "r"  ]l   d
+Memory positition:   0    1    2    3    4    5    6    7    8   9
+```
+
+Notice how `ld` exceeded the allocated buffer and instead overwrites the adjacent memory positions.
+
+Now, the stack lives in memory too, and we may have a `ret` statement living there, with an address that suddenly gets overwritten with some nonsencial bytes of input.
+
+This input may not necessarily be nonsensical. If it is a byte encoded sequence that represents a CPU instruction, followed by some additional data, such as a different return address, we can maliciously force the CPU to go to a totally unexpected return address.
+
+But if we place a special *canary value* in the stack frame between any local buffer such as the one discussed and the rest of the stack state, we can check this canary value before returning from a function to check if it has been altered from the expected value by some operation.
+
+For example, consider the canary value: 123
+
+|           BUFFER          |   CANARY   |   RETURN   |
+ "H, e, l, l, o,  , w, o, r, ld"
+
+The canary has been overwritten and is now something like "ld23".
+
+When we compare the value and detect that it is NOT the same, we detect that the stack has been corrupted.
 
 ### Question 2. B
 
@@ -90,7 +174,13 @@ We could have checked the canaries for manipulation before returning from the fu
 
 #### 2. B Exam version
 
-Forklar i flere detaljer. Check koden igennem. Giv et helt konkret eksempel.
+Stack canaries would have been our saviour.
+
+In Level 1, we provided as many *AA* pairs as the size of the buffer. We read the size of the buffer from the assembly code and new precisely how many positions in memory that was allocated.
+
+Then, immediately after the *AA*s in the input, we gave another return address (45 19 40). Then, when executing the function, the CPU "returned" to that address, effectively invoking a completely different function.
+
+Had we had a stack canary before the return address, it would have been the canary that was overwritten. Before returning, we could have checked it to see if it had changed or not.
 
 ## Question 3
 
@@ -116,13 +206,11 @@ Forklar i flere detaljer. Check koden igennem. Giv et helt konkret eksempel.
 
 #### 3. A Exam version
 
-Gå i dybden med forskellen mellem `strcmp` og `strncomp`. Hvorfor du kan risikere buffer overflow hvis du ikke eksplicit giver en længdebegrænsning (n).
-
-Forklar om malloc og hvad du brugte den til. Gå opgaven igennem.
+// TODO: Er der noget at tilføje her?
 
 ### Question 3. B
 
-*Using grpof to profile your program, describe how your program performs when the size of the input sequence is varied from 1 word to 10 words. Discuss how time is spent during the execution of your program. Does performance depend on the order of the words?*.
+*Using gprof to profile your program, describe how your program performs when the size of the input sequence is varied from 1 word to 10 words. Discuss how time is spent during the execution of your program. Does performance depend on the order of the words?*.
 
 #### 3. B Written solution
 
@@ -134,7 +222,15 @@ For OR operations, it is the other way around - we want to have the most common 
 
 #### 3. B Exam version
 
-Her skal du nok konkretisere dit svar meget og gå opgaven igennem. Der tænkes måske også på asymptotisk kompleksitet her. Hele det der med at optimisere koden, e.g. tage ting ud af loops så de ikke skal evalueres unødvendigt mange gange.
+The function that is most easily optimizable is the `matcLine` function.
+It performs a loop in which it compares the received line with all of the words to match on.
+If the OR flag is set, it will break the loop as soon as it finds a match.
+
+We can optimize the average run-time of this, though it will still be O(n), by sorting our strings such that the words that are most common (e.g. most likely to appear in the line) are checked first. Because this will also mean that there is a greater chance of `break` happening sooner than later.
+
+For AND, it is the other way around. If we sort by the least common (e.g. most UNlikely to appear in the line) words, as soon as a word is seen that isn't matched, it will break the loop.
+
+Another thing that limits execution speed is the part where it needs to open a stream to files. This produces an underlying system call which is significantly more slow than executing instructions that sit in memory.
 
 ## Question 4
 
@@ -152,7 +248,41 @@ Implicit free lists are easy to implement, but may take O(n) for allocation whic
 
 #### 4. A Exam version
 
-Illustrér på tavlen. Sæt det i forhold til explicit free list og segregated free list. Forklar hvorfor det kan tage O(n) tid (first-fit, next-fit, best-fit, holder reference til alle blocks fremfor kun *free*).
+If we treat the heap as one huge linked list,
+
+![Heap as linked list](./asset/heap_as_linked_list.png)
+
+We can break each block into block as this:
+
+![Heap block](./asset/heap_block.png)
+
+If we impose a double-word alignment constraint (8 bytes), then the block size is always a multiple of 8 and the 3 low-order bits of the block size are always zero. Thus, we need to store only the 29 high-order bits of the block size, **freeing the remaining 3 bits to encode other information**. In this case we are using the least significant of these bits - the *allocated bit* - to indicate whether the block is allocated or free.
+
+We break the blocks into:
+
+- A header containing the size as well as a bit indicating if it is allocated or not
+- A payload, where we store the actual data, and
+- Optional padding
+
+The reason why we call it a linked list is because we can use the "size" field in the header to know for how long to "jump" when traversing the list for a free block. This is also the reason why it is implicit - it doesn't actually contain any pointers to the remaining notes, but we can traverse it using just the size.
+
+When we want to find a free block, we traverse the list until we find a block that is free and has enough size to fit whatever payload we want to fit within it.
+
+We can do a *first-fit* traversal, where we essentially traverse the full list until we find one. This works well, but for large heaps, we may end up traversing for a long time.
+
+We can do a *next-fit* traversal where we start from the previous fit. This can be faster, but if we ended up somewhere last time because there were blocks that were free but didn't have space for the payload, and the new payload you are trying to store could have been fitted within them, you get memory fragmentation.
+
+We can also do *best-fit* traversal which eliminates fragmentation, but will be slow since it must traverse until it finds a perfect fit.
+
+We can improve upon this with an *explicit free list* which is a doubly linked list.
+
+Here, each block also has a predecessor and successor link, and **it only links free blocks**.
+
+So if *n = total number of blocks*, and *n<sub>f</sub> = total number of free blocks*, traversal with an explicit free list is only O(n<sub>f</sub>).
+
+However, we may still end up traversing for a long time if there are many free blocks.
+
+Instead, we can use a segregated free list, which is a bunch of explicit free lists divided into size classes. This is neat because we just choose the size class that matches whatever we want to store and then we should be able to immediately find an available block.
 
 ### Question 4. B
 
@@ -164,7 +294,13 @@ Illustrér på tavlen. Sæt det i forhold til explicit free list og segregated f
 
 #### 4. B Exam Version
 
-Check opgaven igennem for at forstå hvad det går ud på, så du har et eller andet at sige her.
+The assignment is about producing a heap consistency checker. It needs to check:
+
+- Whether there are any free blocks
+- If any free blocks escaped coalescing.
+- If any allocated blocks overlap
+
+It's all about having the best combination of space utilization and throughput.
 
 ## Question 5
 
@@ -178,9 +314,25 @@ Virtual Memory is a memory management technique that sits on top of physical mem
 
 #### 5. A Exam version
 
-Det er et meget tyndt svar.
-Snak om MMU og TPL, om DRAM cache og om hits/misses. Snak om hvorfor det er smart - locality.
-Snak om at hver process har sin egen page table og sit eget virtuelle address space.
+Virtual Memory is a memory management technique that treats main memory as a cache for an address space stored on disk. It keeps only the active areas in main memory and transfers data back and forth between those as needed.
+
+It simplifies memory management greatly by providing each process with a uniform address space and protects the address space of each process from corruption by other processes.
+
+We want to be able to always target the full address space of *2<sup>64</sup>*. Now, that is equal to 16 exabytes and no computers have that. So instead, we *translate* virtual addresses to physical addresses inside memory.
+
+The most simple version of this would be
+
+CPU <sub>va</sub> -> MMU <sub>PA</sub> -> Main memory <sub>Data</sub> -> CPU.
+
+Where the CPU generates a virtual address which is converted t o the appropriate physical address.
+
+More precisely, it works like this:
+
+[!VM](./asset/vm.png)
+
+When we have a page miss, a page fault exception is triggered which invokes a page fault exception handler in the kernel.
+
+The kernel selects a victim page inside the DRAM cache and replaces whatever there is on it with the new Virtual Page. It moves that Virtual Page down onto the disk if it is dirt (e.g. if it has changed), otherwise it just clears it.
 
 ### Question 5. B
 
@@ -192,8 +344,7 @@ The Translation Lookaside Buffer (TLB) is a small, virtually addressed cache. Si
 
 #### 5. B Exam Version
 
-Illustrér på tavlen. Forklar hvorfor den er smart.
-Nævn at kan spare nogle CPU cycles osv.
+Vis på tavlen sammen med Virtual Memory. Du har allerede dækket det i det forrige svar.
 
 ### Question 5. C
 
@@ -207,7 +358,7 @@ These faults not necessarily errors, but can also trigger the OS to attempt to f
 
 ### 5. C Exam version
 
-Tegn på tavlen diagrammet over at PTE ikke har en adresse i DRAM og derfor laver en page fault. Forklar så hvordan page fault exception handleren tager den virtuelle page fra disken, finder et "victim" i DRAM cachen og erstatter den med den virtuelle page og dernæst sætter den nye adresse på PTE'en.
+A *page fault* happens when a virtual page isn't cached in main memory but rather sits in virtual memory on the disk. When a *page fault* exception is triggered, the page fault exception handler in the kernel is invoked. It will then select a *victim page* (if there isn't space) inside cached memory and replace it with the virtual page from disk. If that virtual page is dirty, e.g. it is different from the one on disk, it must be copied over to disk to preserve the changes.
 
 ### Question 5.D
 
@@ -230,4 +381,40 @@ This will produce a segmentation fault on memory protected systems since it atte
 
 #### 5. D Exam Version
 
-Illustrer hvor i virtual memory at statisk deklarered strenge havner henne og hvorfor det springer i luften.
+When we get a segmentation fault, we are doing something wrong with memory.
+If we try to dereference a *null* pointer, we get a segmentation fault.
+
+If try to read or write from a part of memory we dont have access to or that is read-only, we too get a segmentation fault. For example:
+
+```c
+char *str = "Foo"; // Compiler marks the constant string as read-only
+*str = 'b';
+```
+
+Now, when you declare a pointer of type char and you provide it with a string, it is stored in read-only block, generally in the data segment of virtual memory. You can make `*str` point to something else, but you cannot change the actual value associated with that specific virtual memory page.
+
+## Additional questions section
+
+### What is a string in C
+
+In C, we can express the abstract idea of a string with an array of characters and with a pointer.
+
+#### String as an array
+
+```c
+char str[] = "foo";
+```
+
+This is an array in memory of *["F", "o", "o", "\0"]* where the "\0" character is the nul character and indicates the end of the string.
+
+Since strings are really just arrays, we can access each character in the array like we use to `str[1]`.
+
+#### String as a pointer
+
+We can also declare a string as a *pointer to some characters*:
+
+```c
+char *str = "Foo";
+```
+
+This is *not* an array of characters, but instead a pointer to some read-only memory location containing the string-literal.

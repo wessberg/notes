@@ -345,6 +345,72 @@ There are:
 - *Logical*: A logical right shift fills the left end with *k* zeros.
 - *Arithmetic*: An arithmetic right shift fills the left end with *k* repretitions of the most significant bit.
 
+When we *left shift*, we move everything over by one to the left. **This has the effect of multiplying the number by 2!**
+
+When we *right shift*, we move everything over by one to the right. **This has the effect of dividing the number by 2!**
+
+But, with right shifts, what happens with the sign bit? If it is a negative number, won't be lose the sign bit? Yes, we will - if we perform a logical right shift - which will add a leading 0 - effectively making a negative number (where the sign bit is 1) look like a negative number.
+
+Arithmetic right shifts, however, moves everything over and instead of adding a leading 0, it duplicates the sign bit. That way, it is preserved. This too is division. Performing an arithmetic right shift of *-23* results in *-12*. Dividing *-23* by 2 would get *-11.5*, so it has just been rounded up to *-12*.
+
+## `&` and `|`
+
+- `0 & 0 => 0` // AND
+- `0 & 1 => 0`
+- `1 & 1 => 1`
+- `0 | 0 => 0` // OR
+- `0 | 1 => 1`
+- `1 | 1 => 1`
+- `0 ^ 0 => 0` // XOR
+- `0 ^ 1 => 1`
+- `1 ^ 1 => 0`
+
+### Getting the *n*-th bit
+
+How do we get the *n*-th bit out of a number?
+
+Consider this number:
+
+00101100
+  ^
+How to we take the 3rd bit? We want to know if it is a 1 or a zero.
+
+**Solution: We create a bit mask**!
+
+#### Bit masks
+
+We create a number that has a 1 **only in that specific position where we want to know if the original number's bit on that position was 1 or 0**. Then we *&* it with the original number:
+
+  00101100
+& 00100000     // Mask - only a 1 in that specific position
+
+If the result is 0, the *whole number will be 0*. Otherwise, it will be something bigger than zero - and thus we know that the bit on that position was in fact 1.
+
+##### Creating the mask
+
+We can create it by taking 1 and shifting it to the left by *i* spots.
+
+**So, to figure out if the *i*th spot is a one or a zero in *x*, we just *x & (1 << i) != 0***.
+
+### Setting the *n*th-bit
+
+Pretty much the same thing.
+We create the exact same mask, but then we *OR* it with the original to set a specific bit to 1:
+
+*x | (1 << i>>)* where *i* is the position we want to set.
+
+### Clearing the *nth*-bit
+
+More tricky than setting, but still doable.
+We create mask **that has 1 everywhere else but in that position where we want to clear the bit**.
+
+   00101100
+&  11011111   // mask
+
+To do it, we simply take the mask from before, *1 << i*, **and invert it with ~!**
+
+So: *x | ~(1 << i)*
+
 ### Compatibility problems with shifts
 
 C doesn't require shifts to be arithemtic or logical - so it may vary between environments. This also means that any code assuming one form or the other will potentially encounter portability problems!

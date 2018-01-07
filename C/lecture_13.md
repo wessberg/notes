@@ -1,4 +1,4 @@
-# Lecture 12
+# Lecture 13
 
 > CS:APP, Chapter 9.9, 9.11 - 9.12
 

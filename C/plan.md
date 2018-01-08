@@ -15,10 +15,10 @@ Check out [this video](https://www.youtube.com/watch?v=NLKQEOgBAnw).
 
 ## Exceptional Control flow
 
-- [ ] Interrupts
-- [ ] Traps and system calls
-- [ ] Aborts
-- [ ] Usermode vs supervisor mode
+- [X] Interrupts
+- [X] Traps and system calls
+- [X] Aborts
+- [X] Usermode vs supervisor mode
 
 ## Fragmentation
 
@@ -84,5 +84,10 @@ Check out [this video](https://www.youtube.com/watch?v=NLKQEOgBAnw).
 
 ## V-Tables, Descriptors, etc
 
-- [ ] Learn about V-tables
-- [ ] Learn about descriptors
+- [X] Learn about V-tables
+- [X] Learn about descriptors
+- [X] Learn about File tables
+
+## Processes
+
+- [X] Be able to fully explain processes.

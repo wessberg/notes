@@ -336,6 +336,12 @@ When we have a page miss, a page fault exception is triggered which invokes a pa
 
 The kernel selects a victim page inside the DRAM cache and replaces whatever there is on it with the new Virtual Page. It moves that Virtual Page down onto the disk if it is dirt (e.g. if it has changed), otherwise it just clears it.
 
+Each and every process has its own virtual address space as well as a separate page table inside memory!
+
+Multiple virtual pages can be mapped to the same shared physical page, without a problem! You can define shared memory regions, e.g. regions that can be shared between processes.
+
+This also greatly simplifies linking and loading code since shared libraries always start at the same address.	
+
 ### Question 5. B
 
 *What is a Translation Lookaside Buffer?*.
@@ -498,3 +504,97 @@ Notice that the page size will always be the same.
 And now, inside the pages, the Virtual page number may be wildly different from the physical page number - but the offset is identical.
 
 *When* we do the translation, we don't care about the offset - only the page number.
+
+### What is an exception
+
+An *exception* is an abrupt change in the control flow in response to some change in the processor's state.
+
+System exceptions come from the CPU or from the kernel. For example, page faults or memory access violations (segfaults) come from the CPU!
+
+The kernel provides system calls as one type of exception.
+
+### What are Interrupts
+
+These are asynchronous exceptions which happen as a result of signals from I/O devices that are external to the CPU!
+
+pecifically, an I/O device triggers interrupts by signaling a pin on the processor chip and placing onto the system bus the exception number that identifies the device that caused the interrupt.
+
+When the processor notices that the interrupt pin has gone high, it reads the exception number from the system bus and then calls the appropriate interrupt handler. When the handler returns, it then returns control to the next instruction (the instruction that would have followed the current instruction in the local flow, had the interrupt not occurred).
+
+### What are Traps and System Calls
+
+These happen synchronously as a result of executing the current instruction.
+
+Traps happen when a user program wants to use the kernel for something (such as reading a file (`read`) or creating a new process (`fork`)). A `syscall` instruction provides the user program controlled access to request a specific service *n*. It causes a trap, and eventually it returns control to the next instruction.
+
+### What are Faults
+
+Faults are things like page faults. These result from error conditions that a handler *might* be able to correct. When such fault occurs, the processor transfers control to the fault handler. If it is able to correct the error condition, it returns control to the faulting instruction. Otherwise, the handler returns to an `abort` routine in the kernel that termiantes the application program that caused the fault!
+
+### What are aborts
+
+Aborts are **unrecoverable** fatal errors. This may be hardware errors such as when DRAM or SRAM bits are corrupted. Abort handlers never return control to the application program.
+
+### How do you read a file
+
+First, you need to call `open()` with the filename as well as what you want to do with the file. You then get a File Descriptor `fd` back which you must pass as a descriptor when you later want to read or write to that file.
+
+When you open a file, a *descriptor* is a unique index that uniquely identifies that access to the file. This allows multiple uses of the same file simultaneously.
+
+To the kernel, all open files are referred to by File Descriptors (non-negative numbers). When we open an existin g file or create a new file, the kernel returns a file descriptor to the process!
+
+So, when we want to read or write a file, we identify the file with the file descriptor that was returned by `open()` or `create()` function call, and use it as an argument to either `read()` or `write()`
+
+The `read(int fd, void *buf, size_t n)` function copies at most *n* bytes from the current file position of a descriptor *fd* to a memory location *buf*.
+
+It may be the case that read actually ends up reading less bytes than we asked it to. One reason may be that while reading it encounters an EOF while reading.
+
+### How do the kernel represent open files
+
+It uses three related data structure:
+
+- *Descriptor table*: Each process has its own separate *descriptor table* whose entries are indexed by the process's open file descriptors. **Each open descriptor entry points to an entry in the *file table*.
+- *File table*: The set of open files is represented by a file table **that is shared by all processes**. Each file table entry consists of:
+  - The current file position
+	- A reference count of the number of descriptor entries that currently point to it. Closing a descriptor decrements the reference count in the associated file table entry. The kernel will delete the file table entry when the reference count becomes 0.
+	- A pointer to an entry in the *v-node table*.
+- *V-node table*: This is also shared by all processes. Each entry contains most of the information in the `stat` structure.
+
+### What is the Standard I/O in C
+
+The C language has a standard library, `libc`, that makes it easier to work with I/O.
+
+It has:
+
+- `fopen` and `fclose` function for opening and closing files.
+- `fread` and `fwrite` for reading and writing bytes
+- `fgets` and `fputs` for reading and writing strings
+- `scanf` and `printf` for sophisticated formatted I/O
+
+It models an open file as a *stream*. This is a pointer to as tructure of type `FILE`.
+
+**Every C program begins with three open streams**:
+
+- `stdin`
+- `stdout`
+- `stderr`
+
+These correspond to:
+
+- standard input
+- standard output
+- standard error
+
+respectively.
+
+### What is a process
+
+When we run a program, we are presented with the illusion that our program is the only one currently running.
+
+A process is what provides us with this illusion.
+
+### How is a virtual address space organized
+
+![Private address space](./asset/private_address_space.png)
+
+(Remember that the stack is also just part of memory. Thus we need a stack pointer to know at which position in memory the stack is located)

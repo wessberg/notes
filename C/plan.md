@@ -13,6 +13,13 @@ This includes:
 
 Check out [this video](https://www.youtube.com/watch?v=NLKQEOgBAnw).
 
+## Exceptional Control flow
+
+- [ ] Interrupts
+- [ ] Traps and system calls
+- [ ] Aborts
+- [ ] Usermode vs supervisor mode
+
 ## Fragmentation
 
 - [X] Be able to explain and illustrate internal vs external fragmentation

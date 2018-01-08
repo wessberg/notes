@@ -318,7 +318,7 @@ Virtual Memory is a memory management technique that treats main memory as a cac
 
 It simplifies memory management greatly by providing each process with a uniform address space and protects the address space of each process from corruption by other processes.
 
-We want to be able to always target the full address space of *2<sup>64</sup>*. Now, that is equal to 16 exabytes and no computers have that. So instead, we *translate* virtual addresses to physical addresses inside memory.
+We want to be able to always target the full address space of *2<sup>64</sup>*. Now, that is equal to 16 exabytes and no computers have that. We may have something like 256MB RAM on older computers which is equal to a physical address space of *2<sup>28</sup>*. So instead, we *translate* virtual addresses to physical addresses inside memory.
 
 The most simple version of this would be
 
@@ -328,7 +328,9 @@ Where the CPU generates a virtual address which is converted t o the appropriate
 
 More precisely, it works like this:
 
-[!VM](./asset/vm.png)
+[!VM](./asset/vm_1.png)
+[!VM](./asset/vm_2.png)
+[!VM](./asset/vm_3.png)
 
 When we have a page miss, a page fault exception is triggered which invokes a page fault exception handler in the kernel.
 
@@ -418,3 +420,73 @@ char *str = "Foo";
 ```
 
 This is *not* an array of characters, but instead a pointer to some read-only memory location containing the string-literal.
+
+### What is the difference between little endian and big endian
+
+### What does "least" and "most" significant digit mean
+
+### How does the Stack work
+
+The stack is built in Last-in, First-out.
+
+We can push and pop elements onto the stack.
+
+The stack grows from bottom and up. It grows toward lower stack addresses.
+
+### What is internal and external fragmentation
+
+Internal fragmentation:
+
+![Internal fragmentation](./asset/internal_fragmentation.png)
+
+happens when an allocated block is larger than the payload. There is simply too much space. For example, the implementor of the allocator might impose a minimum size on allocated blocks that is greater than some requested payload.
+
+External fragmentation:
+
+![External fragmentation](./asset/external_fragmentation.png)
+
+This is when there *is* enough aggregate free memory to satisfy an allocate request, but no single free block is large enough to handle the request.
+
+### What can you do to get additional heap memory (coalescing)
+
+We can try to create some larger free blocks by merging (called coalescing) free blocks **that are phyiscally adjacent in memory**.
+
+If this doesn't help, the allocator can ask the kernel for additional heap memory with the `sbrk` function.
+
+### How do you coalesc free bocks (and false fragmentation)
+
+When an allocated block is freed, there might be other free blocks adjacent to it. This can cause something called **false fragmentation**, where there is a lot of available memory chopped up into small, unusable free blocks.
+
+To avoid false fragmentation, the allocator must merge adjacent free blocks in a process called *coalescing*.
+
+It is easy to coalesc the next block: We just follow the link of the current block to the next one. If the next one is free, and adjacent to the current one, we can coalesc them!
+
+But, what if we would coalesc the previous block? We don't have any reference to it with an implicit free list. With an Implicit free list, we would have to search the entire list until we reached the current block, in which case we'd know that the block we looked for was the previous one.
+
+A technique that can be used for constant-time coalescing of the previous block with implicit lists is one with something called *Boundary Tags*.
+
+The idea is to add a *footer* (the boundary) tag **at the end of each block**, where the footer is a replica of the header.
+
+This means that each block includes a footer that represents the status of the previous block!
+
+With it, we can easily see if we can coalesc depending on whether the left-adjacent and right-adjacent blocks are free.
+
+### What is a Virtual and Physical page
+
+Say we have a 32-bit machine with 256MB of RAM and the pages are 4kB of size.
+
+Then we have a virtual address space of *2<sup>32</sup>* and a physical address space of *2<sup>28</sup>*.
+
+And due to the page size of 4kB we have 4096 addresses or 12 bits per page.
+
+All virtual addresses are then 32 bits of size, but 12 of them goes to the page *offset* (because of the 4kB page size) and the remaining becomes the virtual page number.
+
+Likewise, all physical addresses are then 28 bits of size, but 12 of them goes to the page *offset* because of the 4kb page size, and the remaining becomes the *physical* page number.
+
+Notice that the page size will always be the same.
+
+![pages](./asset/pages.png)
+
+And now, inside the pages, the Virtual page number may be wildly different from the physical page number - but the offset is identical.
+
+*When* we do the translation, we don't care about the offset - only the page number.

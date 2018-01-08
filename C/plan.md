@@ -15,7 +15,7 @@ Check out [this video](https://www.youtube.com/watch?v=NLKQEOgBAnw).
 
 ## Fragmentation
 
-- [ ] Be able to explain and illustrate internal vs external fragmentation
+- [X] Be able to explain and illustrate internal vs external fragmentation
 
 ## Implicit Free lists
 
@@ -23,7 +23,7 @@ Check out [this video](https://www.youtube.com/watch?v=NLKQEOgBAnw).
 - [X] Practice Illustrating how a sequence of blocks looks on an implicit free list
 - [X] Be able to explain the O(n) limitation by heart
 - [X] Be able to explain difference between first-fit, next-fit and best-fit
-- [ ] Coalescing free blocks. How, what.
+- [X] Coalescing free blocks. How, what.
 
 ## Explicit Free lists
 
@@ -40,8 +40,8 @@ Check out [this video](https://www.youtube.com/watch?v=NLKQEOgBAnw).
 
 - [X] Be able to explain the illustrate the general flow from CPU to MMU, potentially with a TLB, and then to the cache layer + L1
 - [X] Be able to fully explain the page table and how it handles DRAM hits/misses.
-- [ ] Be able to explain the difference between Virtual pages and physical pages - and what a page *is*.
-- [ ] Be able to explain *cache lines*.
+- [X] Be able to explain the difference between Virtual pages and physical pages - and what a page *is*.
+- [X] Be able to explain *cache lines*.
 
 ## Assembly and the Stack
 
@@ -52,8 +52,8 @@ Check out [this video](https://www.youtube.com/watch?v=NLKQEOgBAnw).
 ## Strings
 
 - [X] Be able to explain how a string is initialized
-- [ ] Be able to explain where a string is located in memory.
-- [ ] Be able to explain why such strings are read-only
+- [X] Be able to explain where a string is located in memory.
+- [X] Be able to explain why such strings are read-only
 
 ## Alignment
 

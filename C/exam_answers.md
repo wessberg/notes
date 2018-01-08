@@ -133,34 +133,7 @@ An attacker can still get around a stack canary by gaining control of a pointer 
 
 #### 2. A Exam version
 
-So, imagine you've allocated a 8 bytes to a char array: `char buf[8]`.
-
-Now, you request some input from the command line and set all of the received characters within that buffer.
-
-If you don't consider the length of the given input, then you may end up exceeding that buffer. For example:
-
-```text
-Input:              "H    e    l    l    o    W    o    r    l   d"
-buf:               ["H", "e", "l", "l", "o", "W", "o", "r"  ]l   d
-Memory positition:   0    1    2    3    4    5    6    7    8   9
-```
-
-Notice how `ld` exceeded the allocated buffer and instead overwrites the adjacent memory positions.
-
-Now, the stack lives in memory too, and we may have a `ret` statement living there, with an address that suddenly gets overwritten with some nonsencial bytes of input.
-
-This input may not necessarily be nonsensical. If it is a byte encoded sequence that represents a CPU instruction, followed by some additional data, such as a different return address, we can maliciously force the CPU to go to a totally unexpected return address.
-
-But if we place a special *canary value* in the stack frame between any local buffer such as the one discussed and the rest of the stack state, we can check this canary value before returning from a function to check if it has been altered from the expected value by some operation.
-
-For example, consider the canary value: 123
-
-|           BUFFER          |   CANARY   |   RETURN   |
- "H, e, l, l, o,  , w, o, r, ld"
-
-The canary has been overwritten and is now something like "ld23".
-
-When we compare the value and detect that it is NOT the same, we detect that the stack has been corrupted.
+![Stack canary](./asset/canary.png)
 
 ### Question 2. B
 
@@ -598,3 +571,19 @@ A process is what provides us with this illusion.
 ![Private address space](./asset/private_address_space.png)
 
 (Remember that the stack is also just part of memory. Thus we need a stack pointer to know at which position in memory the stack is located)
+
+### Can you explain how the hardware is generally organized in a system
+
+(Yes)
+
+### How do you detect overflow
+
+An arithmetic operation is said to overflow when the full integer result cannot fit within the word size limits of the data type.
+
+**Anytime we add two positive values and come up with a negative result, we have an overflow condition!**.
+
+**And, anytime we add two negative values and come up with a positive result, this too is an overflow condition**!
+
+### Can you explain how the stack looks
+
+![Stack frames](./asset/stack_frames.png)

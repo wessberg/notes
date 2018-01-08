@@ -91,3 +91,7 @@ Check out [this video](https://www.youtube.com/watch?v=NLKQEOgBAnw).
 ## Processes
 
 - [X] Be able to fully explain processes.
+
+## VM Permissions
+
+- [ ] Be able to explain how you can implement permission management using virtual memory

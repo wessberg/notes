@@ -328,9 +328,9 @@ Where the CPU generates a virtual address which is converted t o the appropriate
 
 More precisely, it works like this:
 
-[!VM](./asset/vm_1.png)
-[!VM](./asset/vm_2.png)
-[!VM](./asset/vm_3.png)
+![VM](./asset/vm_1.png)
+![VM](./asset/vm_2.png)
+![VM](./asset/vm_3.png)
 
 When we have a page miss, a page fault exception is triggered which invokes a page fault exception handler in the kernel.
 
@@ -423,7 +423,15 @@ This is *not* an array of characters, but instead a pointer to some read-only me
 
 ### What is the difference between little endian and big endian
 
-### What does "least" and "most" significant digit mean
+With Big Endian, you store the most significant byte in the smallest address. So with big Endian, you read the bytes from left to right.
+
+With Little Endian, you store the *least* significant byte in the smallest address. So with Little Endian, you read the bytes from right to left.
+
+### What does "least" and "most" significant bit mean
+
+THe least significant bit is the bit determining whether the number is even or odd. This is typically the right-most bit, if the bit vector is represented from left to right.
+
+The most significant bit is then the left-most - the one we use for sign in Two's-Complement.
 
 ### How does the Stack work
 

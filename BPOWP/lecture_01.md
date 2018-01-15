@@ -1,6 +1,6 @@
 # IT Design
 
-> Participatory IT Design, chapter 1
+> Participatory IT Design, Chapter 1, 2
 
 ## What is IT Design
 

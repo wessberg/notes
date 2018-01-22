@@ -12,7 +12,7 @@ They were eager to further develop an already proposed system that supported thi
 
 With the MUST principles in mind, as we understood them at the time, we pressed them for confirmation that they had identified problematic work processes that could be improved with new IT usage.
 
-Specifically, we wanted confirmation that they had performed some flavor of ethnographic analysis, some level of user involvement, and that they had a plan for meeting the qualification requirements.
+Specifically, that they had performed some flavor of ethnographic analysis, some level of user involvement, and that they had a plan for meeting the qualification requirements.
 
 The answer was yes to all of this.
 

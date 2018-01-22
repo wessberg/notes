@@ -2,7 +2,7 @@
 
 ## Presentation (2-3 minutes)
 
-I'd like to spend a few minutes describing how using the MUST principles ultimately redeemed what were on the path to become an IT Design project that would produce visions that didn't serve any identified user needs, would reduce employee satisfaction, and wouldn't save the company money.
+I'd like to spend a few minutes describing how using the MUST principles ultimately redeemed an IT Design project that would produce visions that didn't serve any identified user needs, would reduce employee satisfaction, and wouldn't save the company money.
 
 We conducted an IT project with Rambøll, an engineering, design and consultancy company.
 

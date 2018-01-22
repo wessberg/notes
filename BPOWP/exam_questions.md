@@ -16,7 +16,7 @@ Specifically, that they had performed some flavor of ethnographic analysis, some
 
 The answer was yes to all of this.
 
-Our fault was accepting this confirmation and accepting to move into Innovation to produce mockups, but finally we did hit the breaks.
+Our fault was accepting this confirmation and actually moving into Innovation to produce mockups, but finally we did hit the breaks.
 
 Knowing that the deadline was approaching, we decided to attack the project from a different angle. How were engineers at Rambøll sharing knowledge today? Did they like it? Were there elements of it that could be supported by IT?
 

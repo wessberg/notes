@@ -233,7 +233,7 @@ Shouldn't only be used in the Innovation phase, but all through the project.
 
 ## What is a Baseline Plan
 
-![Baseline plan](./asset/https://github.com/wessberg/notes/raw/master/BPOWP/asset/baseline_plan.png)
+![Baseline plan](https://github.com/wessberg/notes/raw/master/BPOWP/asset/baseline_plan.png)
 
 A Baseline plan is a representation tool that is really useful during the Initiation plan to define which activities to perform during the different phases of the design project.
 

@@ -22,7 +22,7 @@ Knowing that the deadline was approaching, we decided to attack the project from
 
 We arranged unstructured interviews in the cantina in an attempt to identify problematic work processes. We conducted an online survey. We arranged a workshop with representatives from five different departments.
 
-We found that it was an integral part of any Rambøll engineers day to share knowledge in-person, and they loved it. Each construction project were so different that the answers they did give changed each time and were tailored to the specific context it was asked within.
+We found that it was an integral part of any Rambøll engineers day to share knowledge in-person, and they loved it. In fact, each construction project were so different that the answers they did give changed each time and were tailored to the specific context it was asked within.
 
 They would hate for this to change, but we did identify other problems that could serve as the foundation for an entirely new Design Project that might actually benefit the company.
 

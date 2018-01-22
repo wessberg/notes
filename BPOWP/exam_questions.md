@@ -28,7 +28,7 @@ They would hate for this to change, but we did identify other problems that coul
 
 Pressed for time, our proposal became a guide for them to use for future IT-Design projects based on Participatory IT Design.
 
-Had we not used the MUST principles, we would have helped them build one more IT system that the users didn't want and didn't have the qualifications to use. In that way, I think the project was a success.
+Had we not used the MUST principles, we would have helped Rambøll build one more IT system that the users didn't want and didn't have the qualifications to use. In that way, I think the project was a success.
 
 ## What is an IT Design Project
 

@@ -162,7 +162,7 @@ The representation tools support the processing and presentation of knowledge co
 
 ## What is Coherent Vision
 
-![Coherent Vision](./asset/https://github.com/wessberg/notes/raw/master/BPOWP/asset/coherent_visions_for_change.png)
+![Coherent Vision](https://github.com/wessberg/notes/raw/master/BPOWP/asset/coherent_visions_for_change.png)
 
 - Don't focus only on IT development and technology.
 - Also take into account the required changes to work organization and the qualifications that users will need in order to perform their work

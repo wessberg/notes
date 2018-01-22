@@ -4,7 +4,7 @@
 
 I'd like to spend a few minutes describing how using the MUST principles ultimately redeemed an IT Design project that would produce visions that didn't serve any identified user needs, would reduce employee satisfaction, and wouldn't save the company money.
 
-We conducted a project with Rambøll, which is an engineering, design and consultancy company.
+So, our company was Rambøll, which is an engineering, design and consultancy company.
 
 After analyzing their Business strategy we found that an executive decision had been put forward to digitize knowledge sharing.
 

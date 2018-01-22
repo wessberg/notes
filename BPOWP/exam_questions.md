@@ -4,32 +4,29 @@
 
 I'd like to spend a few minutes describing how using the MUST principles ultimately redeemed an IT Design project that would produce visions that didn't serve any identified user needs, would reduce employee satisfaction, and wouldn't save the company money.
 
-We conducted an IT project with Rambøll, an engineering, design and consultancy company.
+We conducted a project with Rambøll, which is an engineering, design and consultancy company.
 
-After analyzing their Business strategy we found that an executive decision had been put forward to digitize knowledge sharing and corporate learning.
+After analyzing their Business strategy we found that an executive decision had been put forward to digitize knowledge sharing.
 
-They were eager to push us forward in further developing an already proposed system which they hoped would reinvent day-to-day knowledge sharing.
+They were eager to further develop an already proposed system that supported this decision.
 
 With the MUST principles in mind, as we understood them at the time, we pressed them for confirmation that they had identified problematic work processes that could be improved with new IT usage.
 
-Specifically, we wanted confirmation that they had performed some flavor of ethnographic analysis, that the employees were aware of the push to digitizing knowledge sharing and that they had some plan for meeting the qualification requirements.
+Specifically, we wanted confirmation that they had performed some flavor of ethnographic analysis, some level of user involvement, and that they had a plan for meeting the qualification requirements.
 
-In other words, that they followed the principles of Coherent Vision, Genuine User Participation, Firsthand Experience with Work practices and Anchoring Visions.
+The answer was yes to all of this.
 
-The answer was yes to all of these.
-
-Our fault was accepting this confirmation. We were quick to accept the request put forward from management to produce mockups and move into Innovation, but finally we hit the breaks.
+Our fault was accepting this confirmation and accepting to move into Innovation to produce mockups, but finally we did hit the breaks.
 
 Knowing that the deadline was approaching, we decided to attack the project from a different angle. How were engineers at Rambøll sharing knowledge today? Did they like it? Were there elements of it that could be supported by IT?
 
-We arranged unstructured interviews in the cantina in an attempt to identify problematic work processes. We conducted an online survey. We conducted a workshop with representatives from five different departments.
+We arranged unstructured interviews in the cantina in an attempt to identify problematic work processes. We conducted an online survey. We arranged a workshop with representatives from five different departments.
 
-We found that it was an integral part of any Rambøll engineers day to share knowledge in-person, and they loved it. Each construction project were so different that the answers they did 
-give were different each time and tailored to the specific context it was asked within.
+We found that it was an integral part of any Rambøll engineers day to share knowledge in-person, and they loved it. Each construction project were so different that the answers they did give changed each time and were tailored to the specific context it was asked within.
 
-They would hate for this to change, but we did identify problems especially with knowing who has which knowledge. This could be the foundation for an entirely new Design Project that might actually benefit the company as a whole.
+They would hate for this to change, but we did identify other problems that could serve as the foundation for an entirely new Design Project that might actually benefit the company.
 
-Pressed for time, our proposal became a guide for them to use for future Design projects based on Participatory IT Design.
+Pressed for time, our proposal became a guide for them to use for future IT-Design projects based on Participatory IT Design.
 
 Had we not used the MUST principles, we would have helped them build one more IT system that the users didn't want and didn't have the qualifications to use. In that way, I think the project was a success.
 
